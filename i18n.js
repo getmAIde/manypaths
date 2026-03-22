@@ -8,7 +8,7 @@ const TRANSLATIONS = {
     religionLabel: 'Select religions to compare (pick 2–4)',
     compareBtn: 'Compare →',
     loadingText: 'Researching across traditions...',
-    footer: 'Many Paths presents scholarship for educational purposes only. Part of the {getMAIde} family.',
+    footer: 'Many Paths presents scholarship for educational purposes only. Part of the {getmAIde} family.',
     alertNoTopic: 'Please enter a topic.',
     alertMinReligions: 'Please select at least 2 religions.',
     alertError: 'Something went wrong: ',
@@ -27,7 +27,7 @@ const TRANSLATIONS = {
     religionLabel: 'Selecciona religiones para comparar (elige 2–4)',
     compareBtn: 'Comparar →',
     loadingText: 'Investigando entre tradiciones...',
-    footer: 'Many Paths presenta estudios solo con fines educativos. Parte de la familia {getMAIde}.',
+    footer: 'Many Paths presenta estudios solo con fines educativos. Parte de la familia {getmAIde}.',
     alertNoTopic: 'Por favor, ingresa un tema.',
     alertMinReligions: 'Por favor, selecciona al menos 2 religiones.',
     alertError: 'Algo salió mal: ',
@@ -46,7 +46,7 @@ const TRANSLATIONS = {
     religionLabel: 'اختر الأديان للمقارنة (اختر 2–4)',
     compareBtn: '← قارن',
     loadingText: 'بحث عبر التقاليد الدينية...',
-    footer: 'تقدم Many Paths محتوى أكاديمياً لأغراض تعليمية فقط. جزء من عائلة {getMAIde}.',
+    footer: 'تقدم Many Paths محتوى أكاديمياً لأغراض تعليمية فقط. جزء من عائلة {getmAIde}.',
     alertNoTopic: 'الرجاء إدخال موضوع.',
     alertMinReligions: 'الرجاء اختيار دينين على الأقل.',
     alertError: 'حدث خطأ ما: ',
@@ -65,7 +65,7 @@ const TRANSLATIONS = {
     religionLabel: 'בחר דתות להשוואה (בחר 2–4)',
     compareBtn: '← השווה',
     loadingText: 'חוקר בין מסורות שונות...',
-    footer: 'Many Paths מציגה מחקר למטרות חינוכיות בלבד. חלק ממשפחת {getMAIde}.',
+    footer: 'Many Paths מציגה מחקר למטרות חינוכיות בלבד. חלק ממשפחת {getmAIde}.',
     alertNoTopic: 'אנא הכנס נושא.',
     alertMinReligions: 'אנא בחר לפחות 2 דתות.',
     alertError: 'משהו השתבש: ',
@@ -84,7 +84,7 @@ const TRANSLATIONS = {
     religionLabel: 'तुलना के लिए धर्म चुनें (2–4 चुनें)',
     compareBtn: 'तुलना करें →',
     loadingText: 'परंपराओं में शोध हो रहा है...',
-    footer: 'Many Paths केवल शैक्षणिक उद्देश्यों के लिए शोध प्रस्तुत करती है। {getMAIde} परिवार का हिस्सा।',
+    footer: 'Many Paths केवल शैक्षणिक उद्देश्यों के लिए शोध प्रस्तुत करती है। {getmAIde} परिवार का हिस्सा।',
     alertNoTopic: 'कृपया एक विषय दर्ज करें।',
     alertMinReligions: 'कृपया कम से कम 2 धर्म चुनें।',
     alertError: 'कुछ गलत हो गया: ',
@@ -103,7 +103,7 @@ const TRANSLATIONS = {
     religionLabel: 'Sélectionnez des religions à comparer (choisir 2–4)',
     compareBtn: 'Comparer →',
     loadingText: 'Recherche à travers les traditions...',
-    footer: 'Many Paths présente des études à des fins éducatives uniquement. Fait partie de la famille {getMAIde}.',
+    footer: 'Many Paths présente des études à des fins éducatives uniquement. Fait partie de la famille {getmAIde}.',
     alertNoTopic: 'Veuillez entrer un sujet.',
     alertMinReligions: 'Veuillez sélectionner au moins 2 religions.',
     alertError: 'Une erreur est survenue : ',
@@ -122,7 +122,7 @@ const TRANSLATIONS = {
     religionLabel: '选择要比较的宗教（选 2–4 个）',
     compareBtn: '比较 →',
     loadingText: '正在研究各宗教传统...',
-    footer: 'Many Paths 仅出于教育目的提供学术内容。{getMAIde} 家族的一部分。',
+    footer: 'Many Paths 仅出于教育目的提供学术内容。{getmAIde} 家族的一部分。',
     alertNoTopic: '请输入一个话题。',
     alertMinReligions: '请至少选择 2 种宗教。',
     alertError: '出错了：',
@@ -141,7 +141,7 @@ const TRANSLATIONS = {
     religionLabel: '比較する宗教を選ぶ（2〜4 つ）',
     compareBtn: '比較する →',
     loadingText: '各宗教の伝統を研究中...',
-    footer: 'Many Paths は教育目的のみで学術情報を提供します。{getMAIde} ファミリーの一員。',
+    footer: 'Many Paths は教育目的のみで学術情報を提供します。{getmAIde} ファミリーの一員。',
     alertNoTopic: 'トピックを入力してください。',
     alertMinReligions: '少なくとも 2 つの宗教を選んでください。',
     alertError: 'エラーが発生しました：',
@@ -195,8 +195,8 @@ function applyTranslations() {
   const footerP = document.querySelector('footer p');
   if (footerP) {
     footerP.innerHTML = lang.footer.replace(
-      '{getMAIde}',
-      '<a href="https://getmaide.com">getMAIde</a>'
+      '{getmAIde}',
+      '<a href="https://getmaide.com">getmAIde</a>'
     );
   }
 
