@@ -1,0 +1,61 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <!-- Many Paths — Bluesky Avatar 1000x1000 (displayed as circle) -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="62%">
+      <stop offset="0%"   stop-color="#2a1f14"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="45%">
+      <stop offset="0%"   stop-color="#c8900e" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#c8900e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ag1" x1="500" y1="207" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#378ADD"/><stop offset="100%" stop-color="#378ADD" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag2" x1="729" y1="318" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#BA7517"/><stop offset="100%" stop-color="#BA7517" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag3" x1="785" y1="564" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D9E75"/><stop offset="100%" stop-color="#1D9E75" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag4" x1="627" y1="764" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D85A30"/><stop offset="100%" stop-color="#D85A30" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag5" x1="373" y1="764" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#534AB7"/><stop offset="100%" stop-color="#534AB7" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag6" x1="215" y1="564" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#888780"/><stop offset="100%" stop-color="#888780" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ag7" x1="271" y1="318" x2="500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#639922"/><stop offset="100%" stop-color="#639922" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="circle"><circle cx="500" cy="500" r="500"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#circle)">
+    <rect width="1000" height="1000" fill="url(#bg)"/>
+    <ellipse cx="500" cy="480" rx="380" ry="340" fill="url(#glow)"/>
+
+    <!-- Mark scaled to 1000x1000 (512→1000, factor ~1.95, center 500,500) -->
+    <!-- Dot positions scaled: original radius 150 → 293; center 256→500 -->
+    <!-- Trails -->
+    <path d="M 500 207 Q 396 396 500 500" stroke="url(#ag1)" stroke-width="25" fill="none" stroke-linecap="round"/>
+    <path d="M 729 318 Q 516 354 500 500" stroke="url(#ag2)" stroke-width="21" fill="none" stroke-linecap="round"/>
+    <path d="M 785 564 Q 623 422 500 500" stroke="url(#ag3)" stroke-width="23" fill="none" stroke-linecap="round"/>
+    <path d="M 627 764 Q 639 549 500 500" stroke="url(#ag4)" stroke-width="27" fill="none" stroke-linecap="round"/>
+    <path d="M 373 764 Q 549 639 500 500" stroke="url(#ag5)" stroke-width="21" fill="none" stroke-linecap="round"/>
+    <path d="M 215 564 Q 422 623 500 500" stroke="url(#ag6)" stroke-width="17" fill="none" stroke-linecap="round"/>
+    <path d="M 271 318 Q 356 516 500 500" stroke="url(#ag7)" stroke-width="23" fill="none" stroke-linecap="round"/>
+    <!-- Dots -->
+    <circle cx="500" cy="207" r="41" fill="#378ADD"/>
+    <circle cx="729" cy="318" r="35" fill="#BA7517"/>
+    <circle cx="785" cy="564" r="39" fill="#1D9E75"/>
+    <circle cx="627" cy="764" r="45" fill="#D85A30"/>
+    <circle cx="373" cy="764" r="37" fill="#534AB7"/>
+    <circle cx="215" cy="564" r="31" fill="#888780"/>
+    <circle cx="271" cy="318" r="39" fill="#639922"/>
+    <!-- Center -->
+    <circle cx="500" cy="500" r="29" fill="#1C1A2E"/>
+  </g>
+</svg>

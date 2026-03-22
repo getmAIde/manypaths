@@ -1,0 +1,33 @@
+# Environment
+.env
+.env.local
+.env*.local
+
+# Dependencies
+node_modules/
+
+# Output (generated content — don't commit)
+output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Mac / scratch files
+*.rtfd/
+*.zip
+
+# Generated PNGs (regenerate with export-png.js)
+logo/bluesky-avatar.png
+logo/bluesky-banner.png

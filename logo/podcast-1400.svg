@@ -1,0 +1,108 @@
+<svg width="1400" height="1400" viewBox="0 0 1400 1400" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Many Paths — Podcast Cover 1400x1400
+    Dark background, centered mark (~640px), wordmark below
+  -->
+  <defs>
+    <!-- Background: deep warm dark -->
+    <radialGradient id="bg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%"   stop-color="#2a1f14"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </radialGradient>
+    <!-- Subtle sunray bloom behind mark -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#c8900e" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#c8900e" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Trail gradients — scaled for 1400 canvas (mark lives in nested SVG) -->
+    <linearGradient id="mp-g1" x1="256" y1="106" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#378ADD"/><stop offset="100%" stop-color="#378ADD" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g2" x1="373" y1="163" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#BA7517"/><stop offset="100%" stop-color="#BA7517" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g3" x1="402" y1="289" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D9E75"/><stop offset="100%" stop-color="#1D9E75" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g4" x1="321" y1="391" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D85A30"/><stop offset="100%" stop-color="#D85A30" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g5" x1="191" y1="391" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#534AB7"/><stop offset="100%" stop-color="#534AB7" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g6" x1="110" y1="289" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#888780"/><stop offset="100%" stop-color="#888780" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mp-g7" x1="139" y1="163" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#639922"/><stop offset="100%" stop-color="#639922" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="1400" fill="url(#bg)"/>
+
+  <!-- Sunray bloom centered on mark -->
+  <ellipse cx="700" cy="520" rx="500" ry="420" fill="url(#glow)"/>
+
+  <!-- Mark: nested SVG, 640x640, centered at x=380 y=120 → center at 700,440 -->
+  <svg x="380" y="120" width="640" height="640" viewBox="0 0 512 512">
+    <path d="M 256 106 Q 203 203 256 256" stroke="url(#mp-g1)" stroke-width="13" fill="none" stroke-linecap="round"/>
+    <path d="M 373 163 Q 264 181 256 256" stroke="url(#mp-g2)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M 402 289 Q 319 216 256 256" stroke="url(#mp-g3)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M 321 391 Q 327 281 256 256" stroke="url(#mp-g4)" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M 191 391 Q 281 327 256 256" stroke="url(#mp-g5)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M 110 289 Q 216 319 256 256" stroke="url(#mp-g6)" stroke-width="9"  fill="none" stroke-linecap="round"/>
+    <path d="M 139 163 Q 182 264 256 256" stroke="url(#mp-g7)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <circle cx="256" cy="106" r="21" fill="#378ADD"/>
+    <circle cx="373" cy="163" r="18" fill="#BA7517"/>
+    <circle cx="402" cy="289" r="20" fill="#1D9E75"/>
+    <circle cx="321" cy="391" r="23" fill="#D85A30"/>
+    <circle cx="191" cy="391" r="19" fill="#534AB7"/>
+    <circle cx="110" cy="289" r="16" fill="#888780"/>
+    <circle cx="139" cy="163" r="20" fill="#639922"/>
+    <circle cx="256" cy="256" r="15" fill="#1C1A2E"/>
+  </svg>
+
+  <!-- Wordmark -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;600&amp;display=swap');
+  </style>
+
+  <!-- MANYPATHS: MANY hairline / PATHS semibold — Josefin Sans #6 -->
+  <text
+    x="700" y="870"
+    font-family="'Josefin Sans', 'Century Gothic', sans-serif"
+    font-size="110"
+    letter-spacing="18"
+    text-anchor="middle">
+    <tspan font-weight="100" fill="#907030">MANY</tspan><tspan font-weight="600" fill="#c8900e">PATHS</tspan>
+  </text>
+
+  <!-- Thin gold rule -->
+  <line x1="440" y1="910" x2="960" y2="910" stroke="#c8900e" stroke-width="1" stroke-opacity="0.4"/>
+
+  <!-- "one destination." in Josefin Sans ultralight spaced caps -->
+  <text
+    x="700" y="972"
+    font-family="'Josefin Sans', 'Century Gothic', sans-serif"
+    font-size="42"
+    font-weight="100"
+    letter-spacing="10"
+    text-anchor="middle"
+    fill="#a07840">
+    one destination.
+  </text>
+
+  <!-- "manypaths.one" subtle URL -->
+  <text
+    x="700" y="1060"
+    font-family="'EB Garamond', Georgia, serif"
+    font-size="28"
+    letter-spacing="3"
+    text-anchor="middle"
+    fill="#7a5a30"
+    fill-opacity="0.7">
+    manypaths.one
+  </text>
+</svg>

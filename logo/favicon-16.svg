@@ -1,0 +1,17 @@
+<svg width="16" height="16" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Many Paths — Favicon 16px
+    Simplified: dots only, no trails (invisible at 16px)
+    ViewBox 32x32 for crisp rendering, displayed at 16x16
+  -->
+  <!-- Outer tradition dots (radius 10 from center 16,16) -->
+  <circle cx="16"   cy="6"    r="2.5" fill="#378ADD"/>  <!-- Christianity -->
+  <circle cx="23.8" cy="9.8"  r="2.2" fill="#BA7517"/>  <!-- Judaism      -->
+  <circle cx="25.7" cy="18.2" r="2.4" fill="#1D9E75"/>  <!-- Islam        -->
+  <circle cx="20.3" cy="25"   r="2.6" fill="#D85A30"/>  <!-- Buddhism     -->
+  <circle cx="11.7" cy="25"   r="2.2" fill="#534AB7"/>  <!-- Hinduism     -->
+  <circle cx="6.3"  cy="18.2" r="2.0" fill="#888780"/>  <!-- Taoism       -->
+  <circle cx="8.2"  cy="9.8"  r="2.3" fill="#639922"/>  <!-- Sikhism      -->
+  <!-- Center -->
+  <circle cx="16"   cy="16"   r="2.0" fill="#1C1A2E"/>
+</svg>

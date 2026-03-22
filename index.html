@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Many Paths — one destination</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Josefin+Sans:wght@100;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/logo/favicon-16.svg">
+  <link rel="apple-touch-icon" href="/logo/icon-180.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="lang-wrap">
+        <select id="langPicker" onchange="setLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ar">العربية</option>
+          <option value="he">עברית</option>
+          <option value="hi">हिन्दी</option>
+          <option value="fr">Français</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+      <h1><span class="h1-many">MANY</span><span class="h1-paths">PATHS</span></h1>
+      <p class="tagline">one destination.</p>
+    </header>
+
+    <main>
+      <section class="controls">
+        <div class="topic-input">
+          <label for="topic">Choose a topic</label>
+          <input type="text" id="topic" placeholder="e.g. forgiveness, prayer, afterlife..." />
+        </div>
+
+        <div class="religion-select">
+          <label>Select religions to compare (pick 2-4)</label>
+          <div class="checkboxes">
+            <label><input type="checkbox" value="Christianity" checked> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
+            <label><input type="checkbox" value="Judaism" checked> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
+            <label><input type="checkbox" value="Islam" checked> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
+            <label><input type="checkbox" value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
+            <label><input type="checkbox" value="Hinduism"> <span class="cb-sym" style="color:#D85A30">ॐ</span> Hinduism</label>
+            <label><input type="checkbox" value="Taoism"> <span class="cb-sym" style="color:#5DCAA5">☯</span> Taoism</label>
+            <label><input type="checkbox" value="Sikhism"> <span class="cb-sym" style="color:#D4537E">☬</span> Sikhism</label>
+          </div>
+        </div>
+
+        <button id="compareBtn" onclick="compare()">Compare →</button>
+      </section>
+
+      <section id="loading" class="hidden">
+        <div class="faith-orbit">
+          <div class="faith-core"></div>
+          <span class="faith-sym fs-1">✝</span>
+          <span class="faith-sym fs-2">✡</span>
+          <span class="faith-sym fs-3">☪</span>
+          <span class="faith-sym fs-4">☸</span>
+          <span class="faith-sym fs-5">ॐ</span>
+          <span class="faith-sym fs-6">☯</span>
+          <span class="faith-sym fs-7">✦</span>
+        </div>
+        <p class="faith-label">Researching across traditions...</p>
+      </section>
+
+      <section id="results" class="hidden">
+        <div id="columns" class="columns"></div>
+        <div id="commonGround" class="common-ground"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Many Paths presents scholarship for educational purposes only. Part of the <a href="https://getmaide.com">getMAIde</a> family.</p>
+    </footer>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
