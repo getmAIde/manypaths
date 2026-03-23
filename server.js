@@ -211,6 +211,26 @@ const server = http.createServer(async (req, res) => {
 
   console.log(`[${req.method}] ${pathname}`);
 
+  // Diagnostic endpoint
+  if (req.method === "GET" && pathname === "/api/diag") {
+    try {
+      const nodeVer = process.version;
+      const hasKey  = !!process.env.ANTHROPIC_API_KEY;
+      const keyLen  = (process.env.ANTHROPIC_API_KEY || '').length;
+      // Test outbound fetch to api.anthropic.com
+      let fetchOk = false, fetchErr = '';
+      try {
+        const r = await fetch('https://api.anthropic.com', { method: 'HEAD' });
+        fetchOk = true;
+      } catch (e) { fetchErr = e.message; }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ nodeVer, hasKey, keyLen, fetchOk, fetchErr }));
+    } catch (e) {
+      res.writeHead(500);
+      return res.end(e.message);
+    }
+  }
+
   if (req.method === "POST" && pathname === "/api/research") {
     return handleResearch(req, res);
   }
