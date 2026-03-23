@@ -226,9 +226,11 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (err) {
-        console.error("[/api/run-research]", err.message);
+        console.error("[/api/run-research] ERROR:", err.message);
+        console.error("[/api/run-research] STACK:", err.stack);
+        console.error("[/api/run-research] TYPE:", err.constructor?.name);
         res.writeHead(err.message.startsWith("invalid") ? 400 : 500);
-        res.end(err.message);
+        res.end(JSON.stringify({ error: err.message, type: err.constructor?.name }));
       }
     });
     return;
