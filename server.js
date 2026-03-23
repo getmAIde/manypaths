@@ -217,14 +217,43 @@ const server = http.createServer(async (req, res) => {
       const nodeVer = process.version;
       const hasKey  = !!process.env.ANTHROPIC_API_KEY;
       const keyLen  = (process.env.ANTHROPIC_API_KEY || '').length;
-      // Test outbound fetch to api.anthropic.com
-      let fetchOk = false, fetchErr = '';
+      // Test direct API call with raw fetch (bypassing SDK)
+      let directOk = false, directStatus = 0, directErr = '';
       try {
-        const r = await fetch('https://api.anthropic.com', { method: 'HEAD' });
-        fetchOk = true;
-      } catch (e) { fetchErr = e.message; }
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-3-5-20241022',
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'Say: ok' }],
+          }),
+        });
+        directStatus = r.status;
+        directOk = r.ok;
+        if (!r.ok) directErr = await r.text();
+      } catch (e) { directErr = e.message; }
+
+      // Test SDK
+      let sdkOk = false, sdkErr = '', sdkErrCause = '';
+      try {
+        const msg = await client.messages.create({
+          model: 'claude-haiku-3-5-20241022',
+          max_tokens: 10,
+          messages: [{ role: 'user', content: 'Say: ok' }],
+        });
+        sdkOk = true;
+      } catch (e) {
+        sdkErr = e.message;
+        sdkErrCause = e.cause?.message || e.cause?.code || '';
+      }
+
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ nodeVer, hasKey, keyLen, fetchOk, fetchErr }));
+      return res.end(JSON.stringify({ nodeVer, hasKey, keyLen, directOk, directStatus, directErr, sdkOk, sdkErr, sdkErrCause }));
     } catch (e) {
       res.writeHead(500);
       return res.end(e.message);
