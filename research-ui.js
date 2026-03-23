@@ -9,14 +9,26 @@
   // ─── Data ─────────────────────────────────────────────────────────────────
 
   const TRADITION_COLORS = {
-    Christianity: '#7F77DD',
-    Judaism:      '#1D9E75',
-    Islam:        '#378ADD',
-    Buddhism:     '#EF9F27',
-    Hinduism:     '#D85A30',
-    Taoism:       '#5DCAA5',
-    Sikhism:      '#D4537E',
+    Christianity:        '#7F77DD',
+    Judaism:             '#1D9E75',
+    Islam:               '#378ADD',
+    Buddhism:            '#EF9F27',
+    Hinduism:            '#D85A30',
+    Taoism:              '#5DCAA5',
+    Sikhism:             '#D4537E',
+    'Latter-day Saints': '#1B3A6B',
   };
+
+  // ─── "New" badge (auto-expires 30 days after addedDate) ────────────────────
+  const TRADITION_ADDED = {
+    'Latter-day Saints': '2026-03-24',
+  };
+
+  function isNewTradition(name) {
+    const added = TRADITION_ADDED[name];
+    if (!added) return false;
+    return (Date.now() - new Date(added).getTime()) < 30 * 24 * 60 * 60 * 1000;
+  }
 
   const SUGGESTIONS = {
     verse:        ['John 3:16', 'Psalm 23', 'Surah Al-Fatiha', 'Dhammapada 1', 'Bhagavad Gita 2:47'],
@@ -807,9 +819,16 @@
       inputEl.focus();
     });
 
-    // Default: Core 7 all checked
+    // Default: all checked
     document.querySelectorAll('#traditionCheckboxes input[type="checkbox"]').forEach(cb => {
       cb.checked = true;
+      // Inject "New" badge if within 30 days of addedDate
+      if (isNewTradition(cb.value)) {
+        const badge = document.createElement('span');
+        badge.className = 'new-badge';
+        badge.textContent = 'New';
+        cb.closest('label').appendChild(badge);
+      }
     });
 
     // Init chips + indicator

@@ -26,6 +26,21 @@ const MAX_TOKENS = {
   sermon_brief: 3000,
 };
 
+// ─── Tradition context (injected when that tradition is present) ──────────────
+
+const TRADITION_CONTEXT = {
+  'Latter-day Saints': 'The Church of Jesus Christ of Latter-day Saints (Latter-day Saints): Restoration theology — the Church as the restored original church of Jesus Christ. Scripture includes the Bible and Book of Mormon as companion witnesses of Christ. Continuing revelation through a living prophet. Eternal progression and exaltation. Sacred temple ordinances. Lay priesthood. Strong emphasis on family, community, and self-reliance. Christ-centered in all theology and practice.',
+};
+
+function traditionContextNote(traditions) {
+  const notes = traditions
+    .filter(t => TRADITION_CONTEXT[t])
+    .map(t => `• ${TRADITION_CONTEXT[t]}`);
+  return notes.length
+    ? `Tradition context for accurate scholarship:\n${notes.join('\n')}`
+    : '';
+}
+
 // ─── Prompt builders ──────────────────────────────────────────────────────────
 
 function traditionsNote(traditions) {
@@ -41,7 +56,8 @@ function sharedRules() {
 }
 
 function buildPrompt(mode, depth, input, traditions) {
-  const tNote = traditionsNote(traditions);
+  const tNote   = traditionsNote(traditions);
+  const ctxNote = traditionContextNote(traditions);
 
   // ── Sermon Brief (always deep, single path) ──────────────────────────────
   if (mode === 'sermon_brief') {
@@ -50,7 +66,7 @@ function buildPrompt(mode, depth, input, traditions) {
 Theme: "${input}"
 Traditions to cover: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON with this exact structure:
 {
@@ -76,7 +92,7 @@ ${sharedRules()}`;
 Verse: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {
@@ -98,7 +114,7 @@ ${sharedRules()}`;
 Verse: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {
@@ -123,7 +139,7 @@ ${sharedRules()}`;
 Topic: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {
@@ -145,7 +161,7 @@ ${sharedRules()}`;
 Topic: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {
@@ -170,7 +186,7 @@ ${sharedRules()}`;
 Keyword: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {
@@ -192,7 +208,7 @@ ${sharedRules()}`;
 Keyword: "${input}"
 Traditions: ${traditions.join(', ')}
 
-${tNote}
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
 
 Return valid JSON:
 {

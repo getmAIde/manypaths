@@ -174,12 +174,26 @@ function send(res, section, text) {
   res.write(`data: ${JSON.stringify({ section, text })}\n\n`);
 }
 
+const TRADITION_CONTEXT = {
+  'Latter-day Saints': 'The Church of Jesus Christ of Latter-day Saints (Latter-day Saints): Restoration theology — the Church as the restored original church of Jesus Christ. Scripture includes the Bible and Book of Mormon as companion witnesses of Christ. Continuing revelation through a living prophet. Eternal progression and exaltation. Sacred temple ordinances. Lay priesthood. Strong emphasis on family, community, and self-reliance. Christ-centered in all theology and practice.',
+};
+
 function buildPrompt(topic, religions) {
   const sections = religions
     .map((r) => `##SECTION:${r}##\n[Write the ${r} section here]`)
     .join("\n\n");
 
+  const ctxNotes = religions
+    .filter(r => TRADITION_CONTEXT[r])
+    .map(r => `• ${TRADITION_CONTEXT[r]}`)
+    .join('\n');
+  const ctxBlock = ctxNotes
+    ? `Tradition context for accurate scholarship:\n${ctxNotes}\n\n`
+    : '';
+
   return `You are a respectful, balanced religious scholar researching how different traditions approach "${topic}".
+
+${ctxBlock}
 
 IMPORTANT: You must use these EXACT section markers in your response — they are required for parsing:
 ${sections}

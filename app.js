@@ -2,14 +2,59 @@ let _shareURL  = '';
 let _shareText = '';
 
 const TRADITION_SYMBOL = {
-  Christianity: { sym: "✝", color: "#7F77DD" },
-  Judaism:      { sym: "✡", color: "#1D9E75" },
-  Islam:        { sym: "☪", color: "#378ADD" },
-  Buddhism:     { sym: "☸", color: "#EF9F27" },
-  Hinduism:     { sym: "ॐ", color: "#D85A30" },
-  Taoism:       { sym: "☯", color: "#5DCAA5" },
-  Sikhism:      { sym: "☬", color: "#D4537E" },
+  Christianity:        { sym: "✝", color: "#7F77DD" },
+  Judaism:             { sym: "✡", color: "#1D9E75" },
+  Islam:               { sym: "☪", color: "#378ADD" },
+  Buddhism:            { sym: "☸", color: "#EF9F27" },
+  Hinduism:            { sym: "ॐ", color: "#D85A30" },
+  Taoism:              { sym: "☯", color: "#5DCAA5" },
+  Sikhism:             { sym: "☬", color: "#D4537E" },
+  'Latter-day Saints': { sym: "✦", color: "#1B3A6B" },
 };
+
+// ─── "New" badge (auto-expires 30 days after addedDate) ──────────────────────
+const TRADITION_ADDED = {
+  'Latter-day Saints': '2026-03-24',
+};
+
+function isNewTradition(name) {
+  const added = TRADITION_ADDED[name];
+  if (!added) return false;
+  return (Date.now() - new Date(added).getTime()) < 30 * 24 * 60 * 60 * 1000;
+}
+
+(function injectNewBadgeStyles() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .new-badge {
+      display: inline-block;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #fff;
+      background: #c8900e;
+      border-radius: 3px;
+      padding: 0.08rem 0.28rem;
+      margin-left: 0.3rem;
+      vertical-align: middle;
+      line-height: 1.5;
+    }
+  `;
+  document.head.appendChild(s);
+}());
+
+(function initNewBadges() {
+  document.querySelectorAll('.checkboxes input[type="checkbox"]').forEach(cb => {
+    if (isNewTradition(cb.value)) {
+      const badge = document.createElement('span');
+      badge.className = 'new-badge';
+      badge.textContent = 'New';
+      cb.closest('label').appendChild(badge);
+    }
+  });
+}());
 
 // ─── Cache helpers ───────────────────────────────────────────────────────────
 function cacheKey(topic, religions) {
