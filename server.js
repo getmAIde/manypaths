@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { track } from "./costTracker.js";
+import { runResearch } from "./research-engine.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -16,6 +17,33 @@ const MIME = {
   ".js":   "application/javascript",
   ".svg":  "image/svg+xml",
 };
+
+function serveIndex(res, topic) {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+    if (topic) {
+      const cap = topic.charAt(0).toUpperCase() + topic.slice(1);
+      html = html
+        .replace(
+          /(<meta property="og:title" content=")[^"]*(")/,
+          `$1${cap} — Many Paths$2`
+        )
+        .replace(
+          /(<meta property="og:description" content=")[^"]*(")/,
+          `$1What does ${topic} mean across 7 world religions? Explore the common ground at Many Paths.$2`
+        )
+        .replace(
+          /(<meta property="og:url" content=")[^"]*(")/,
+          `$1https://manypaths.one/?topic=${encodeURIComponent(topic)}$2`
+        );
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(html);
+  } catch {
+    res.writeHead(404);
+    res.end("Not found");
+  }
+}
 
 function serveStatic(res, filePath) {
   const ext = path.extname(filePath);
@@ -179,9 +207,38 @@ const server = http.createServer((req, res) => {
     return handleResearch(req, res);
   }
 
-  // Map / to index.html, everything else serves directly
-  const filename = pathname === "/" ? "index.html" : pathname.slice(1);
-  const filePath = path.join(__dirname, filename);
+  // Research page API — used by research-ui.js
+  if (req.method === "POST" && pathname === "/api/run-research") {
+    let body = "";
+    req.on("data", c => (body += c));
+    req.on("end", async () => {
+      try {
+        const { mode, depth, input, traditions } = JSON.parse(body);
+        const result = await runResearch(mode, depth, input, traditions);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        console.error("[/api/run-research]", err.message);
+        res.writeHead(err.message.startsWith("invalid") ? 400 : 500);
+        res.end(err.message);
+      }
+    });
+    return;
+  }
+
+  // Root: serve index.html with optional dynamic OG tags
+  if (pathname === "/") {
+    const topic = new URL(req.url, "http://localhost").searchParams.get("topic") || "";
+    return serveIndex(res, topic);
+  }
+
+  // Research page
+  if (pathname === "/research") {
+    return serveStatic(res, path.join(__dirname, "research.html"));
+  }
+
+  // Everything else serves directly
+  const filePath = path.join(__dirname, pathname.slice(1));
 
   // Prevent path traversal
   if (!filePath.startsWith(__dirname + path.sep) && filePath !== __dirname) {

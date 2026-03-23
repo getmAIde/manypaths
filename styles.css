@@ -13,6 +13,57 @@
   --radius:      12px;
 }
 
+/* ─── Top nav ─── */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 48px;
+  background: #16120a;
+  border-bottom: 1px solid rgba(200, 144, 14, 0.2);
+}
+
+.topnav-brand {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e8c96a;
+  text-decoration: none;
+}
+
+.topnav-links {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.topnav-link {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245, 243, 238, 0.5);
+  text-decoration: none;
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.topnav-link:hover {
+  color: #e8c96a;
+  background: rgba(200, 144, 14, 0.1);
+}
+
+.topnav-active {
+  color: #e8c96a;
+}
+
 /* ─── Body — warm parchment + sunlight rays from above ─── */
 body {
   background-color: var(--bg);
@@ -412,6 +463,78 @@ header h1 {
 }
 
 .common-ground.streaming .content::after { visibility: visible; }
+
+/* ─── Share bar ─── */
+.share-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.5rem;
+  padding: 1.1rem 0 0.4rem;
+  border-top: 1px solid var(--border);
+  animation: fadeIn 0.4s ease;
+}
+
+.share-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-right: 0.2rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.1s;
+}
+
+.share-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.share-btn:hover  { transform: translateY(-1px); }
+.share-btn:active { transform: scale(0.97); }
+
+.share-copy:hover {
+  border-color: var(--accent2);
+  background: rgba(200, 144, 14, 0.1);
+  color: var(--accent);
+}
+
+.share-bluesky:hover {
+  border-color: #0085ff;
+  background: rgba(0, 133, 255, 0.08);
+  color: #0064cc;
+}
+
+.share-x:hover {
+  border-color: #555;
+  background: rgba(0, 0, 0, 0.06);
+  color: #111;
+}
+
+/* Drop X on very small screens */
+@media (max-width: 380px) {
+  .share-x { display: none; }
+}
 
 /* ─── Utilities ─── */
 .hidden { display: none !important; }
