@@ -5,7 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { track } from './costTracker.js';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
 
 // Session-level cache — same query never hits the API twice per process lifetime
 const _cache = new Map();
@@ -13,7 +13,7 @@ const _cache = new Map();
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const MODEL_SONNET = process.env.CLAUDE_MODEL        || 'claude-sonnet-4-20250514';
-const MODEL_HAIKU  = process.env.CLAUDE_HAIKU_MODEL  || 'claude-haiku-3-5-20241022';
+const MODEL_HAIKU  = process.env.CLAUDE_HAIKU_MODEL  || 'claude-3-5-haiku-20241022';
 
 // Note: prompt specified "claude-haiku-4-5-20251001" and "claude-sonnet-4-6" —
 // neither is a valid model ID. Using latest real equivalents above.
