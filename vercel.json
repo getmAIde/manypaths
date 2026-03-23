@@ -12,6 +12,7 @@
           "research.html",
           "styles.css",
           "app.js",
+          "i18n.js",
           "research-ui.js",
           "og-default.png",
           "research-engine.js",
