@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { track } from "./costTracker.js";
 import { runResearch } from "./research-engine.js";
+import { generateOG } from "./og-generator.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -18,11 +19,14 @@ const MIME = {
   ".svg":  "image/svg+xml",
 };
 
-function serveIndex(res, topic) {
+function serveIndex(res, topic, traditions = []) {
   try {
     let html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
     if (topic) {
       const cap = topic.charAt(0).toUpperCase() + topic.slice(1);
+      const ogImageURL = traditions.length > 0
+        ? `https://manypaths.one/og?topic=${encodeURIComponent(topic)}&traditions=${encodeURIComponent(traditions.join(','))}`
+        : `https://manypaths.one/og?topic=${encodeURIComponent(topic)}`;
       html = html
         .replace(
           /(<meta property="og:title" content=")[^"]*(")/,
@@ -35,6 +39,10 @@ function serveIndex(res, topic) {
         .replace(
           /(<meta property="og:url" content=")[^"]*(")/,
           `$1https://manypaths.one/?topic=${encodeURIComponent(topic)}$2`
+        )
+        .replace(
+          /(<meta property="og:image" content=")[^"]*(")/,
+          `$1${ogImageURL}$2`
         );
     }
     res.writeHead(200, { "Content-Type": "text/html" });
@@ -197,7 +205,7 @@ Rules:
 - NEVER deviate from the exact marker names listed above`;
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   // Strip query string from URL before routing
   const pathname = new URL(req.url, "http://localhost").pathname;
 
@@ -228,8 +236,35 @@ const server = http.createServer((req, res) => {
 
   // Root: serve index.html with optional dynamic OG tags
   if (pathname === "/") {
-    const topic = new URL(req.url, "http://localhost").searchParams.get("topic") || "";
-    return serveIndex(res, topic);
+    const url         = new URL(req.url, "http://localhost");
+    const topic       = url.searchParams.get("topic") || "";
+    const tradParam   = url.searchParams.get("traditions") || "";
+    const traditions  = tradParam ? tradParam.split(",").map(s => s.trim()).filter(Boolean) : [];
+    return serveIndex(res, topic, traditions);
+  }
+
+  // Dynamic OG image endpoint — GET /og?topic=...&traditions=...
+  if (req.method === "GET" && pathname === "/og") {
+    const url        = new URL(req.url, "http://localhost");
+    const topic      = (url.searchParams.get("topic") || "").trim();
+    const tradParam  = url.searchParams.get("traditions") || "";
+    const traditions = tradParam ? tradParam.split(",").map(s => s.trim()).filter(Boolean) : [];
+    if (!topic) {
+      // Fall back to default OG image
+      return serveStatic(res, path.join(__dirname, "og-default.png"));
+    }
+    try {
+      const buf = await generateOG(topic, traditions);
+      res.writeHead(200, {
+        "Content-Type":  "image/png",
+        "Cache-Control": "public, max-age=86400",
+        "Content-Length": buf.length,
+      });
+      return res.end(buf);
+    } catch (err) {
+      console.error("[/og]", err.message);
+      return serveStatic(res, path.join(__dirname, "og-default.png"));
+    }
   }
 
   // Research page
