@@ -26,6 +26,7 @@
           "research-engine.js",
           "og-generator.js",
           "costTracker.js",
+          "models.js",
           "robots.txt",
           "logo/**",
           "node_modules/**"

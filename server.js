@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { track } from "./costTracker.js";
 import { runResearch } from "./research-engine.js";
 import { generateOG } from "./og-generator.js";
+import { resolvedModels } from "./models.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
@@ -316,4 +317,21 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n🛤️  Many Paths running at http://localhost:${PORT}\n`);
+  checkModels();
 });
+
+async function checkModels() {
+  try {
+    const list = await client.models.list();
+    const available = new Set(list.data.map(m => m.id));
+    const used = Object.entries(resolvedModels());
+    const bad = used.filter(([, id]) => !available.has(id));
+    if (bad.length) {
+      bad.forEach(([name, id]) => console.warn(`⚠️  MODEL WARNING: "${id}" (${name}) not found in Anthropic API — update models.js`));
+    } else {
+      console.log(`✓ Model check passed: ${used.map(([, id]) => id).join(', ')}`);
+    }
+  } catch (err) {
+    console.warn(`⚠️  Model check skipped: ${err.message}`);
+  }
+}

@@ -4,16 +4,16 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { track } from './costTracker.js';
+import { resolvedModels } from './models.js';
 
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
+const { sonnet: MODEL_SONNET, haiku: MODEL_HAIKU } = resolvedModels();
 
 // Session-level cache — same query never hits the API twice per process lifetime
 const _cache = new Map();
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const MODEL_SONNET = process.env.CLAUDE_MODEL        || 'claude-sonnet-4-20250514';
-const MODEL_HAIKU  = process.env.CLAUDE_HAIKU_MODEL  || 'claude-haiku-4-5-20251001';
 
 // Tokens scale with tradition count — original spec assumed 2-3 traditions;
 // 7 traditions × ~200 tokens each needs headroom. Keep sermon_brief tight.
