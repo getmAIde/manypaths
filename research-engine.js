@@ -13,10 +13,7 @@ const _cache = new Map();
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const MODEL_SONNET = process.env.CLAUDE_MODEL        || 'claude-sonnet-4-20250514';
-const MODEL_HAIKU  = process.env.CLAUDE_HAIKU_MODEL  || 'claude-3-5-haiku-20241022';
-
-// Note: prompt specified "claude-haiku-4-5-20251001" and "claude-sonnet-4-6" —
-// neither is a valid model ID. Using latest real equivalents above.
+const MODEL_HAIKU  = process.env.CLAUDE_HAIKU_MODEL  || 'claude-haiku-4-5-20251001';
 
 // Tokens scale with tradition count — original spec assumed 2-3 traditions;
 // 7 traditions × ~200 tokens each needs headroom. Keep sermon_brief tight.
