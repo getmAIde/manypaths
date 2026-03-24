@@ -18,6 +18,8 @@
           "research-engine.js",
           "og-generator.js",
           "costTracker.js",
+          "robots.txt",
+          "logo/**",
           "node_modules/**"
         ]
       }

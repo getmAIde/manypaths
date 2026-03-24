@@ -294,6 +294,14 @@ const server = http.createServer(async (req, res) => {
     return serveStatic(res, path.join(__dirname, "research.html"));
   }
 
+  // Favicon and touch icons → logo SVGs
+  if (pathname === "/favicon.ico") {
+    return serveStatic(res, path.join(__dirname, "logo/icon-32.svg"));
+  }
+  if (pathname === "/apple-touch-icon.png" || pathname === "/apple-touch-icon-precomposed.png") {
+    return serveStatic(res, path.join(__dirname, "logo/icon-180.svg"));
+  }
+
   // Everything else serves directly
   const filePath = path.join(__dirname, pathname.slice(1));
 

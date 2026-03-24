@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://manypaths.one/sitemap.xml
