@@ -360,6 +360,15 @@
         font-weight: 600;
       }
       .sermon-pack-nudge a:hover { text-decoration: underline; }
+
+      /* ─── New badge (denomination checkboxes + nav) ─── */
+      .new-badge {
+        display: inline-block; position: relative; top: -5px;
+        font-family: 'Josefin Sans', sans-serif; font-size: 10px; font-weight: 600;
+        letter-spacing: 0.4px; color: #c8900e; background: transparent;
+        border: 1px solid #c8900e; border-radius: 3px;
+        padding: 1px 4px; line-height: 1.3; white-space: nowrap;
+      }
     `;
     document.head.appendChild(s);
   }
@@ -826,10 +835,23 @@
       if (isNewTradition(cb.value)) {
         const badge = document.createElement('span');
         badge.className = 'new-badge';
-        badge.textContent = 'New';
+        badge.textContent = 'new';
         cb.closest('label').appendChild(badge);
       }
     });
+
+    // Nav badge on Research link (auto-expires 30 days after addedDate)
+    const NAV_BADGE_ADDED = '2026-03-24';
+    const navIsNew = (Date.now() - new Date(NAV_BADGE_ADDED).getTime()) < 30 * 24 * 60 * 60 * 1000;
+    if (navIsNew) {
+      const researchLink = document.querySelector('.topnav-link[href="/research"]');
+      if (researchLink) {
+        const badge = document.createElement('span');
+        badge.className = 'new-badge';
+        badge.textContent = 'new';
+        researchLink.appendChild(badge);
+      }
+    }
 
     // Init chips + indicator
     renderChips(currentMode);

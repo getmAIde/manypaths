@@ -31,3 +31,4 @@ npm-debug.log*
 # Generated PNGs (regenerate with export-png.js)
 logo/bluesky-avatar.png
 logo/bluesky-banner.png
+.vercel

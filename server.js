@@ -219,6 +219,12 @@ Rules:
 - NEVER deviate from the exact marker names listed above`;
 }
 
+// ─── Notes ────────────────────────────────────────────────────────────────────
+// SSL/HTTPS: Handled by Vercel's edge — this server speaks plain HTTP internally.
+// Markdown export: Client-side only (research-ui.js Blob download) — no server involvement.
+// Supabase / Stripe: Not wired yet — all data is stateless / localStorage only.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const server = http.createServer(async (req, res) => {
   // Strip query string from URL before routing
   const pathname = new URL(req.url, "http://localhost").pathname;
