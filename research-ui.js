@@ -828,9 +828,9 @@
       inputEl.focus();
     });
 
-    // Default: all checked
+    // Default: all unchecked
     document.querySelectorAll('#traditionCheckboxes input[type="checkbox"]').forEach(cb => {
-      cb.checked = true;
+      cb.checked = false;
       // Inject "New" badge if within 30 days of addedDate
       if (isNewTradition(cb.value)) {
         const badge = document.createElement('span');
