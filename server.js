@@ -46,7 +46,7 @@ function serveIndex(res, topic, traditions = []) {
           `$1${ogImageURL}$2`
         );
     }
-    res.writeHead(200, { "Content-Type": "text/html" });
+    res.writeHead(200, { "Content-Type": "text/html", ...SECURITY_HEADERS });
     res.end(html);
   } catch {
     res.writeHead(404);
@@ -54,11 +54,17 @@ function serveIndex(res, topic, traditions = []) {
   }
 }
 
+const SECURITY_HEADERS = {
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
 function serveStatic(res, filePath) {
   const ext = path.extname(filePath);
   try {
     const content = fs.readFileSync(filePath);
-    res.writeHead(200, { "Content-Type": MIME[ext] || "text/plain" });
+    res.writeHead(200, { "Content-Type": MIME[ext] || "text/plain", ...SECURITY_HEADERS });
     res.end(content);
   } catch {
     res.writeHead(404);
@@ -82,7 +88,7 @@ async function handleResearch(req, res) {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "https://manypaths.one",
       });
 
       console.log("[server] API key present:", !!process.env.ANTHROPIC_API_KEY);
@@ -251,7 +257,7 @@ const server = http.createServer(async (req, res) => {
         console.error("[/api/run-research] STACK:", err.stack);
         console.error("[/api/run-research] TYPE:", err.constructor?.name);
         res.writeHead(err.message.startsWith("invalid") ? 400 : 500);
-        res.end(JSON.stringify({ error: err.message, type: err.constructor?.name }));
+        res.end(JSON.stringify({ error: err.message.startsWith("invalid") ? err.message : "Something went wrong. Please try again." }));
       }
     });
     return;
