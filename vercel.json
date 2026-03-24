@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.manypaths.one" }],
+      "destination": "https://manypaths.one/:path*",
+      "permanent": true
+    }
+  ],
   "builds": [
     {
       "src": "server.js",
