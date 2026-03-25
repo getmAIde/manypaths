@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Many Paths — one destination</title>
+  <title>Many Paths — Compare World Religions</title>
+  <meta name="description" content="Enter any topic and see what Christianity, Islam, Judaism, Buddhism, Hinduism, Taoism, Sikhism, and Latter-day Saints each teach. Free interfaith comparison tool.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Josefin+Sans:wght@100;600&display=swap" rel="stylesheet">
@@ -18,9 +19,13 @@
   <link rel="apple-touch-icon" href="/logo/icon-180.svg">
   <link rel="stylesheet" href="styles.css">
 </head>
+<style>
+  .beta-nav-badge { display: inline-block; font-size: 0.6rem; font-family: 'Josefin Sans', sans-serif; letter-spacing: 0.06em; color: #c8900e; border: 1px solid #c8900e; border-radius: 3px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
+  .beta-footer-note { text-align: center; font-size: 0.75rem; color: #c8900e; letter-spacing: 0.06em; font-family: 'Josefin Sans', sans-serif; padding: 0.5rem 0; }
+</style>
 <body>
   <nav class="topnav">
-    <a class="topnav-brand" href="/">Many Paths</a>
+    <a class="topnav-brand" href="/">Many Paths <span class="beta-nav-badge">BETA</span></a>
     <div class="topnav-links">
       <a class="topnav-link topnav-active" href="/">Compare</a>
       <a class="topnav-link" href="/research">Research</a>
@@ -54,9 +59,9 @@
         <div class="religion-select">
           <label>Select religions to compare (pick 2-4)</label>
           <div class="checkboxes">
-            <label><input type="checkbox" value="Christianity" checked> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
-            <label><input type="checkbox" value="Judaism" checked> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
-            <label><input type="checkbox" value="Islam" checked> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
+            <label><input type="checkbox" value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
+            <label><input type="checkbox" value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
+            <label><input type="checkbox" value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
             <label><input type="checkbox" value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
             <label><input type="checkbox" value="Hinduism"> <span class="cb-sym" style="color:#D85A30">ॐ</span> Hinduism</label>
             <label><input type="checkbox" value="Taoism"> <span class="cb-sym" style="color:#5DCAA5">☯</span> Taoism</label>
@@ -89,6 +94,7 @@
     </main>
 
     <footer>
+      <div class="beta-footer-note">Compare is always free · Research features coming soon</div>
       <p>Many Paths presents scholarship for educational purposes only. Part of the <a href="https://getmaide.com">getmAIde</a> family. · <a href="mailto:feedback@manypaths.one?subject=Report an issue — Many Paths">Report an issue</a></p>
     </footer>
   </div>
