@@ -28,6 +28,7 @@
           "costTracker.js",
           "models.js",
           "robots.txt",
+          "sitemap.xml",
           "logo/**",
           "node_modules/**"
         ]
