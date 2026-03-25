@@ -395,6 +395,22 @@ function showTipJar() {
   sessionStorage.setItem('mp_tip_shown', '1');
 }
 
+// ─── Surprise me ─────────────────────────────────────────────────────────────
+const SURPRISE_TOPICS = [
+  'forgiveness', 'prayer', 'afterlife', 'suffering', 'compassion',
+  'gratitude', 'justice', 'humility', 'love', 'meditation',
+  'fasting', 'death and rebirth', 'sacred texts', 'pilgrimage',
+  'the nature of God', 'creation', 'sin and redemption', 'community',
+  'charity', 'miracles', 'silence', 'sacrifice', 'the soul',
+  'healing', 'prophecy', 'joy', 'wisdom', 'covenant',
+];
+
+function surpriseMe() {
+  const pick = SURPRISE_TOPICS[Math.floor(Math.random() * SURPRISE_TOPICS.length)];
+  document.getElementById('topic').value = pick;
+  document.getElementById('topic').focus();
+}
+
 // ─── URL param auto-run ───────────────────────────────────────────────────────
 (function initFromURL() {
   const params      = new URLSearchParams(window.location.search);

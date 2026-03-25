@@ -22,6 +22,10 @@
 <style>
   .beta-nav-badge { display: inline-block; font-size: 0.6rem; font-family: 'Josefin Sans', sans-serif; letter-spacing: 0.06em; color: #c8900e; border: 1px solid #c8900e; border-radius: 3px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
   .beta-footer-note { text-align: center; font-size: 0.75rem; color: #c8900e; letter-spacing: 0.06em; font-family: 'Josefin Sans', sans-serif; padding: 0.5rem 0; }
+  .topic-row { display: flex; gap: 0.5rem; align-items: center; }
+  .topic-row input { flex: 1; }
+  .surprise-btn { font-family: 'Josefin Sans', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; white-space: nowrap; color: var(--accent, #c8900e); background: none; border: 1px solid var(--border, rgba(200,144,14,0.3)); border-radius: 20px; padding: 0.4rem 0.9rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .surprise-btn:hover { border-color: #c8900e; background: rgba(200,144,14,0.08); }
 </style>
 <body>
   <nav class="topnav">
@@ -53,7 +57,10 @@
       <section class="controls">
         <div class="topic-input">
           <label for="topic">Choose a topic</label>
-          <input type="text" id="topic" placeholder="e.g. forgiveness, prayer, afterlife..." />
+          <div class="topic-row">
+            <input type="text" id="topic" placeholder="e.g. forgiveness, prayer, afterlife..." />
+            <button type="button" class="surprise-btn" onclick="surpriseMe()">Inspire me →</button>
+          </div>
         </div>
 
         <div class="religion-select">
