@@ -720,6 +720,13 @@
         </svg>
         Copy Link
       </button>
+      <button class="share-btn share-card-btn" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+        </svg>
+        Image Card
+      </button>
       <a class="share-btn share-bluesky"
          href="https://bsky.app/intent/compose?text=${encoded}"
          target="_blank" rel="noopener noreferrer">
@@ -748,6 +755,11 @@
         this.textContent = 'Copied!';
         setTimeout(() => { this.innerHTML = orig; }, 1600);
       });
+    });
+
+    bar.querySelector('.share-card-btn').addEventListener('click', () => {
+      const quote = (data.commonGround || Object.values(data.results || {})[0]?.passage || data.input || '').trim();
+      if (quote && window.QuoteCard) window.QuoteCard.download(quote, 'Many Paths', data.input);
     });
 
     return bar;

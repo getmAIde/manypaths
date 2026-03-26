@@ -20,6 +20,7 @@
           "research.html",
           "styles.css",
           "app.js",
+          "quote-card.js",
           "i18n.js",
           "research-ui.js",
           "og-default.png",

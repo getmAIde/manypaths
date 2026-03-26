@@ -272,6 +272,10 @@ function showShareBar(topic, religions, accumulated) {
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
       Copy Link
     </button>
+    <button class="share-btn share-card" id="shareCardBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Image Card
+    </button>
     <a class="share-btn share-bluesky" href="https://bsky.app/intent/compose?text=${encoded}" target="_blank" rel="noopener noreferrer">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 320" fill="currentColor"><path d="M180 142c-16.3-31.7-60.7-90.8-102-120C38 0 0 4.7 0 55.3c0 19 10.7 80 18 91.7 8.7 13.7 27.3 17.3 46 14.7-20.3 9.3-56.3 29.3-56.3 71.3 0 40.7 38 62 76 44.3 17-8 31-17.3 44.3-32 13.3 14.7 27.3 24 44.3 32 38 17.7 76-3.6 76-44.3 0-42-36-62-56.3-71.3 18.7 2.6 37.3-1 46-14.7 7.3-11.7 18-72.7 18-91.7 0-50.6-38-55.3-78-122-41.3 29.2-85.7 88.3-102 120z"/></svg>
       Bluesky
@@ -282,6 +286,11 @@ function showShareBar(topic, religions, accumulated) {
     </a>
   `;
   document.getElementById('results').appendChild(bar);
+
+  document.getElementById('shareCardBtn').addEventListener('click', () => {
+    const cg = (accumulated.commonGround || '').trim();
+    if (cg && window.QuoteCard) window.QuoteCard.download(cg, 'Common Ground', topic);
+  });
 }
 
 function copyShareLink(btn) {
