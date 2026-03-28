@@ -519,6 +519,20 @@
     updateUsageIndicator();
   }
 
+  // ─── Denomination helpers ──────────────────────────────────────────────────
+
+  function toggleDenom(btn) {
+    btn.closest('.trad-group').classList.toggle('expanded');
+  }
+
+  function selectDenom(pill) {
+    const group = pill.closest('.trad-group');
+    group.querySelectorAll('.denom-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    const cb = group.querySelector('input[type="checkbox"]');
+    cb.dataset.effectiveValue = pill.dataset.value;
+  }
+
   // ─── Tradition helpers ─────────────────────────────────────────────────────
 
   function getSelectedTraditions() {
@@ -533,7 +547,7 @@
 
     const checked = Array.from(
       document.querySelectorAll('#traditionCheckboxes input[type="checkbox"]:checked')
-    ).map(cb => cb.value);
+    ).map(cb => cb.dataset.effectiveValue || cb.value);
     const other = document.getElementById('otherTradition')?.value.trim();
     if (other) checked.push(other);
     return checked.length ? checked : Object.keys(TRADITION_COLORS);
@@ -543,6 +557,8 @@
 
   window.handleTraditionScope = function (radio) {
     const isPick = radio.value === 'pick';
+    const container = document.getElementById('traditionCheckboxes');
+    if (container) container.classList.toggle('pick-mode', isPick);
     document.querySelectorAll('#traditionCheckboxes label').forEach(lbl => {
       lbl.classList.toggle('enabled', isPick);
     });
@@ -904,6 +920,17 @@
     if (traditionSelect) {
       traditionSelect.addEventListener('change', (e) => {
         if (e.target.name === 'traditionScope') handleTraditionScope(e.target);
+      });
+    }
+
+    // Denomination toggles + pills — delegation on #traditionCheckboxes
+    const tradCheckboxes = document.getElementById('traditionCheckboxes');
+    if (tradCheckboxes) {
+      tradCheckboxes.addEventListener('click', (e) => {
+        const toggle = e.target.closest('.denom-toggle');
+        if (toggle) { toggleDenom(toggle); return; }
+        const pill = e.target.closest('.denom-pill');
+        if (pill) { selectDenom(pill); return; }
       });
     }
 
