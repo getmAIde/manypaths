@@ -63,13 +63,13 @@
     <a class="topnav-brand" href="/">Many Paths <span class="beta-nav-badge">BETA</span></a>
     <div class="topnav-links">
       <a class="topnav-link topnav-active" href="/">Compare</a>
-      <a class="topnav-link" href="/research" onclick="window.plausible && plausible('Research Click', {props: {source: 'nav'}})">Research <span class="new-nav-badge">NEW</span></a>
+      <a class="topnav-link" href="/research">Research <span class="new-nav-badge">NEW</span></a>
     </div>
   </nav>
   <div class="app">
     <header>
       <div class="lang-wrap">
-        <select id="langPicker" onchange="setLanguage(this.value)">
+        <select id="langPicker">
           <option value="en">English</option>
           <option value="es">Español</option>
           <option value="ar">العربية</option>
@@ -101,7 +101,7 @@
           <label for="topic">Choose a topic</label>
           <div class="topic-row">
             <input type="text" id="topic" placeholder="e.g. forgiveness, prayer, afterlife..." />
-            <button type="button" class="surprise-btn" onclick="surpriseMe()">Inspire me →</button>
+            <button type="button" class="surprise-btn">Inspire me →</button>
           </div>
         </div>
 
@@ -112,55 +112,55 @@
             <div class="trad-group">
               <div class="trad-label-row">
                 <label><input type="checkbox" value="Christianity" data-effective-value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
-                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
               </div>
               <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Christianity" onclick="selectDenom(this)">All</button>
-                <button type="button" class="denom-pill" data-value="Roman Catholic" onclick="selectDenom(this)">Catholic</button>
-                <button type="button" class="denom-pill" data-value="Eastern Orthodox" onclick="selectDenom(this)">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Baptist" onclick="selectDenom(this)">Baptist</button>
-                <button type="button" class="denom-pill" data-value="Methodist" onclick="selectDenom(this)">Methodist</button>
-                <button type="button" class="denom-pill" data-value="Lutheran" onclick="selectDenom(this)">Lutheran</button>
-                <button type="button" class="denom-pill" data-value="Pentecostal" onclick="selectDenom(this)">Pentecostal</button>
+                <button type="button" class="denom-pill active" data-value="Christianity">All</button>
+                <button type="button" class="denom-pill" data-value="Roman Catholic">Catholic</button>
+                <button type="button" class="denom-pill" data-value="Eastern Orthodox">Orthodox</button>
+                <button type="button" class="denom-pill" data-value="Baptist">Baptist</button>
+                <button type="button" class="denom-pill" data-value="Methodist">Methodist</button>
+                <button type="button" class="denom-pill" data-value="Lutheran">Lutheran</button>
+                <button type="button" class="denom-pill" data-value="Pentecostal">Pentecostal</button>
               </div>
             </div>
             <!-- Judaism -->
             <div class="trad-group">
               <div class="trad-label-row">
                 <label><input type="checkbox" value="Judaism" data-effective-value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
-                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
               </div>
               <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Judaism" onclick="selectDenom(this)">All</button>
-                <button type="button" class="denom-pill" data-value="Orthodox Judaism" onclick="selectDenom(this)">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Conservative Judaism" onclick="selectDenom(this)">Conservative</button>
-                <button type="button" class="denom-pill" data-value="Reform Judaism" onclick="selectDenom(this)">Reform</button>
+                <button type="button" class="denom-pill active" data-value="Judaism">All</button>
+                <button type="button" class="denom-pill" data-value="Orthodox Judaism">Orthodox</button>
+                <button type="button" class="denom-pill" data-value="Conservative Judaism">Conservative</button>
+                <button type="button" class="denom-pill" data-value="Reform Judaism">Reform</button>
               </div>
             </div>
             <!-- Islam -->
             <div class="trad-group">
               <div class="trad-label-row">
                 <label><input type="checkbox" value="Islam" data-effective-value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
-                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
               </div>
               <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Islam" onclick="selectDenom(this)">All</button>
-                <button type="button" class="denom-pill" data-value="Sunni Islam" onclick="selectDenom(this)">Sunni</button>
-                <button type="button" class="denom-pill" data-value="Shia Islam" onclick="selectDenom(this)">Shia</button>
-                <button type="button" class="denom-pill" data-value="Sufi Islam" onclick="selectDenom(this)">Sufi</button>
+                <button type="button" class="denom-pill active" data-value="Islam">All</button>
+                <button type="button" class="denom-pill" data-value="Sunni Islam">Sunni</button>
+                <button type="button" class="denom-pill" data-value="Shia Islam">Shia</button>
+                <button type="button" class="denom-pill" data-value="Sufi Islam">Sufi</button>
               </div>
             </div>
             <!-- Buddhism -->
             <div class="trad-group">
               <div class="trad-label-row">
                 <label><input type="checkbox" value="Buddhism" data-effective-value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
-                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
               </div>
               <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Buddhism" onclick="selectDenom(this)">All</button>
-                <button type="button" class="denom-pill" data-value="Theravada Buddhism" onclick="selectDenom(this)">Theravada</button>
-                <button type="button" class="denom-pill" data-value="Zen Buddhism" onclick="selectDenom(this)">Zen</button>
-                <button type="button" class="denom-pill" data-value="Tibetan Buddhism" onclick="selectDenom(this)">Tibetan</button>
+                <button type="button" class="denom-pill active" data-value="Buddhism">All</button>
+                <button type="button" class="denom-pill" data-value="Theravada Buddhism">Theravada</button>
+                <button type="button" class="denom-pill" data-value="Zen Buddhism">Zen</button>
+                <button type="button" class="denom-pill" data-value="Tibetan Buddhism">Tibetan</button>
               </div>
             </div>
             <!-- No denomination picker needed -->
@@ -171,7 +171,7 @@
           </div>
         </div>
 
-        <button id="compareBtn" onclick="compare()">Compare →</button>
+        <button id="compareBtn">Compare →</button>
         <p id="compareError" hidden style="margin-top:0.65rem;font-size:0.82rem;color:#e05a3a;font-family:'Josefin Sans',sans-serif;letter-spacing:0.03em;text-align:center;"></p>
       </section>
 

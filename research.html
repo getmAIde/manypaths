@@ -471,21 +471,21 @@
             <span class="featured-mode-badge">Topic</span>
             <span class="featured-query">grief</span>
             <p class="featured-teaser">All 7 traditions treat grief as sacred — but they differ sharply on whether mourning should be public or private.</p>
-            <button class="featured-load-btn" onclick="loadFeatured('topic', 'grief')">Load this research →</button>
+            <button class="featured-load-btn" data-featured-mode="topic" data-featured-query="grief">Load this research →</button>
           </div>
 
           <div class="featured-card">
             <span class="featured-mode-badge">Verse</span>
             <span class="featured-query">John 3:16</span>
             <p class="featured-teaser">The most quoted verse in Christianity carries echoes in Jewish, Islamic, and even Buddhist thought.</p>
-            <button class="featured-load-btn" onclick="loadFeatured('verse', 'John 3:16')">Load this research →</button>
+            <button class="featured-load-btn" data-featured-mode="verse" data-featured-query="John 3:16">Load this research →</button>
           </div>
 
           <div class="featured-card">
             <span class="featured-mode-badge">Sermon Brief</span>
             <span class="featured-query">redemption through suffering</span>
             <p class="featured-teaser">Every major tradition has a theology of suffering — and they converge more than you'd expect.</p>
-            <button class="featured-load-btn" onclick="loadFeatured('sermon', 'redemption through suffering')">Load this research →</button>
+            <button class="featured-load-btn" data-featured-mode="sermon" data-featured-query="redemption through suffering">Load this research →</button>
           </div>
 
         </div>
@@ -516,12 +516,12 @@
           <label>Traditions</label>
 
           <label class="tradition-all">
-            <input type="radio" name="traditionScope" value="all" checked onchange="handleTraditionScope(this)">
+            <input type="radio" name="traditionScope" value="all" checked>
             All Traditions
           </label>
 
           <label class="tradition-all">
-            <input type="radio" name="traditionScope" value="pick" onchange="handleTraditionScope(this)">
+            <input type="radio" name="traditionScope" value="pick">
             Pick traditions
           </label>
 

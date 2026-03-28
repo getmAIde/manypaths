@@ -890,6 +890,23 @@
       }
     }
 
+    // Featured cards — delegation (replaces inline onclick="loadFeatured(...)")
+    const featuredCards = document.querySelector('.featured-cards');
+    if (featuredCards) {
+      featuredCards.addEventListener('click', (e) => {
+        const btn = e.target.closest('.featured-load-btn');
+        if (btn) loadFeatured(btn.dataset.featuredMode, btn.dataset.featuredQuery);
+      });
+    }
+
+    // Tradition scope radios — delegation (replaces inline onchange="handleTraditionScope(this)")
+    const traditionSelect = document.querySelector('.tradition-select');
+    if (traditionSelect) {
+      traditionSelect.addEventListener('change', (e) => {
+        if (e.target.name === 'traditionScope') handleTraditionScope(e.target);
+      });
+    }
+
     // Init chips + indicator
     renderChips(currentMode);
     updateUsageIndicator();

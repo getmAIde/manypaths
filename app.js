@@ -571,7 +571,41 @@ function surpriseMe() {
 }
 
 // ─── History on load ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', historyRender);
+document.addEventListener('DOMContentLoaded', () => {
+  historyRender();
+
+  // ── Wire inline handlers removed for CSP compliance ───────────────────────
+  // surpriseMe
+  const surpriseBtn = document.querySelector('.surprise-btn');
+  if (surpriseBtn) surpriseBtn.addEventListener('click', surpriseMe);
+
+  // compare button
+  const compareBtn = document.getElementById('compareBtn');
+  if (compareBtn) compareBtn.addEventListener('click', compare);
+
+  // language picker
+  const langPicker = document.getElementById('langPicker');
+  if (langPicker) langPicker.addEventListener('change', (e) => setLanguage(e.target.value));
+
+  // denom toggles + pills — event delegation on .checkboxes
+  const checkboxes = document.querySelector('.checkboxes');
+  if (checkboxes) {
+    checkboxes.addEventListener('click', (e) => {
+      const toggle = e.target.closest('.denom-toggle');
+      if (toggle) { toggleDenom(toggle); return; }
+      const pill = e.target.closest('.denom-pill');
+      if (pill) { selectDenom(pill); return; }
+    });
+  }
+
+  // Research nav link Plausible tracking
+  const researchNavLink = document.querySelector('a[href="/research"].topnav-link');
+  if (researchNavLink) {
+    researchNavLink.addEventListener('click', () => {
+      window.plausible && plausible('Research Click', { props: { source: 'nav' } });
+    });
+  }
+});
 
 // ─── URL param auto-run ───────────────────────────────────────────────────────
 (function initFromURL() {
