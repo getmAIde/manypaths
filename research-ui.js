@@ -31,10 +31,33 @@
   }
 
   const SUGGESTIONS = {
-    verse:        ['John 3:16', 'Psalm 23', 'Surah Al-Fatiha', 'Dhammapada 1', 'Bhagavad Gita 2:47'],
-    topic:        ['forgiveness', 'grief', 'charity', 'prayer', 'afterlife', 'suffering'],
-    keyword:      ['light', 'water', 'bread', 'silence', 'fire', 'breath'],
-    sermon_brief: ['redemption through suffering', 'finding peace in chaos', 'the gift of doubt', 'love your enemy'],
+    verse: [
+      'Psalm 88',                    // the psalm that never resolves — rare, powerful
+      'Matthew 25:31–46',            // sheep and goats — justice as the test
+      'Isaiah 58:6–7',               // true fasting vs. empty ritual
+      'Romans 8:38–39',              // nothing can separate us
+      'Surah Al-Inshirah 94',        // "with hardship comes ease" — twice
+      'Tao Te Ching 16',             // returning to the root
+      'Dhammapada 1–2',              // mind is the forerunner of all actions
+    ],
+    topic: [
+      'the dark night of the soul',
+      'when God seems absent',
+      'the body as sacred',
+      'shame and its remedies',
+      'anger and the sacred',
+      'the stranger at the gate',
+      'what the mystics say about silence',
+    ],
+    keyword: ['exile', 'threshold', 'wilderness', 'shadow', 'return', 'anointing', 'hunger'],
+    sermon_brief: [
+      'when faith feels like absence',
+      'the spirituality of failure',
+      'doubt as a form of devotion',
+      'justice and mercy — can both be true at once?',
+      'what to do when the tradition feels insufficient',
+      'the God who suffers with us',
+    ],
   };
 
   // ─── Free tier limits ──────────────────────────────────────────────────────
@@ -568,6 +591,7 @@
     }
 
     const traditions = getSelectedTraditions();
+    window.plausible && plausible('Research Query', {props: {mode: currentMode, depth: currentDepth}});
     showLoading();
     runBtn.disabled = true;
 
@@ -828,9 +852,10 @@
     // Depth
     depthBtns.forEach(btn => btn.addEventListener('click', () => activateDepth(btn)));
 
-    // Run
+    // Run — Enter in input or Cmd/Ctrl+Enter anywhere
     runBtn.addEventListener('click', runResearch);
     inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') runResearch(); });
+    document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') runResearch(); });
 
     // Inspire Me
     inspireBtn.addEventListener('click', () => {
@@ -868,6 +893,19 @@
     // Init chips + indicator
     renderChips(currentMode);
     updateUsageIndicator();
+
+    // Pre-fill from URL params: /research?mode=verse&q=John+3:16
+    const params = new URLSearchParams(window.location.search);
+    const qMode = params.get('mode');
+    const qVal  = params.get('q');
+    if (qVal) {
+      if (qMode) {
+        const matchTab = [...tabs].find(t => t.dataset.mode === qMode);
+        if (matchTab) activateTab(matchTab);
+      }
+      inputEl.value = decodeURIComponent(qVal);
+      renderChips(currentMode);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);

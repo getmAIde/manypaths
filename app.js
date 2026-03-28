@@ -1,6 +1,67 @@
 let _shareURL  = '';
 let _shareText = '';
 
+// ─── Denomination data ────────────────────────────────────────────────────────
+const DENOMINATION_GROUPS = {
+  Christianity: [
+    { label: 'All',         value: 'Christianity' },
+    { label: 'Catholic',    value: 'Roman Catholic' },
+    { label: 'Orthodox',    value: 'Eastern Orthodox' },
+    { label: 'Baptist',     value: 'Baptist' },
+    { label: 'Methodist',   value: 'Methodist' },
+    { label: 'Lutheran',    value: 'Lutheran' },
+    { label: 'Pentecostal', value: 'Pentecostal' },
+  ],
+  Islam: [
+    { label: 'All',   value: 'Islam' },
+    { label: 'Sunni', value: 'Sunni Islam' },
+    { label: 'Shia',  value: 'Shia Islam' },
+    { label: 'Sufi',  value: 'Sufi Islam' },
+  ],
+  Judaism: [
+    { label: 'All',          value: 'Judaism' },
+    { label: 'Orthodox',     value: 'Orthodox Judaism' },
+    { label: 'Conservative', value: 'Conservative Judaism' },
+    { label: 'Reform',       value: 'Reform Judaism' },
+  ],
+  Buddhism: [
+    { label: 'All',       value: 'Buddhism' },
+    { label: 'Theravada', value: 'Theravada Buddhism' },
+    { label: 'Zen',       value: 'Zen Buddhism' },
+    { label: 'Tibetan',   value: 'Tibetan Buddhism' },
+  ],
+};
+
+const DENOMINATION_PARENT = {
+  'Roman Catholic':       'Christianity',
+  'Eastern Orthodox':     'Christianity',
+  'Baptist':              'Christianity',
+  'Methodist':            'Christianity',
+  'Lutheran':             'Christianity',
+  'Pentecostal':          'Christianity',
+  'Sunni Islam':          'Islam',
+  'Shia Islam':           'Islam',
+  'Sufi Islam':           'Islam',
+  'Orthodox Judaism':     'Judaism',
+  'Conservative Judaism': 'Judaism',
+  'Reform Judaism':       'Judaism',
+  'Theravada Buddhism':   'Buddhism',
+  'Zen Buddhism':         'Buddhism',
+  'Tibetan Buddhism':     'Buddhism',
+};
+
+function toggleDenom(btn) {
+  btn.closest('.trad-group').classList.toggle('expanded');
+}
+
+function selectDenom(pill) {
+  const group = pill.closest('.trad-group');
+  group.querySelectorAll('.denom-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  const cb = group.querySelector('input[type="checkbox"]');
+  cb.dataset.effectiveValue = pill.dataset.value;
+}
+
 const TRADITION_SYMBOL = {
   Christianity:        { sym: "✝", color: "#7F77DD" },
   Judaism:             { sym: "✡", color: "#1D9E75" },
@@ -95,17 +156,18 @@ function buildCards(selected) {
   const cgEl = document.getElementById("commonGround");
   const cards = {};
 
-  for (const religion of selected) {
+  selected.forEach((religion, i) => {
     const card = document.createElement("div");
-    card.className = "column-card";
-    const trad = TRADITION_SYMBOL[religion] || { sym: "✦", color: "#c8900e" };
+    card.className = "column-card card-enter";
+    card.style.setProperty('--card-delay', `${i * 120}ms`);
+    const trad = TRADITION_SYMBOL[religion] || TRADITION_SYMBOL[DENOMINATION_PARENT[religion]] || { sym: "✦", color: "#c8900e" };
     card.innerHTML = `
       <h2><span class="sym" style="color:${trad.color}">${trad.sym}</span> ${tr(religion)}</h2>
       <div class="content"></div>
     `;
     columnsEl.appendChild(card);
     cards[religion] = card.querySelector(".content");
-  }
+  });
 
   cgEl.className = "common-ground";
   cgEl.innerHTML = `<h2>${t('commonGround')}</h2><div class="content"></div>`;
@@ -133,10 +195,11 @@ async function compare() {
   const topic = document.getElementById("topic").value.trim();
   const selected = [
     ...document.querySelectorAll(".checkboxes input:checked"),
-  ].map((cb) => cb.value);
+  ].map((cb) => cb.dataset.effectiveValue || cb.value);
 
-  if (!topic) { alert(t('alertNoTopic')); return; }
-  if (selected.length < 2) { alert(t('alertMinReligions')); return; }
+  clearError();
+  if (!topic) { showError(t('alertNoTopic')); return; }
+  if (selected.length < 2) { showError(t('alertMinReligions')); return; }
 
   // Reset UI
   const btn = document.getElementById("compareBtn");
@@ -151,6 +214,7 @@ async function compare() {
   const cached = cacheGet(topic, selected);
   if (cached) {
     console.log("[cache] HIT:", cacheKey(topic, selected));
+    window.plausible && plausible('Compare', {props: {topic, traditions: selected.join(', ')}});
     renderCached(topic, cached, selected);
     btn.disabled = false;
     return;
@@ -227,20 +291,39 @@ async function compare() {
     // Save to cache and show share bar
     cacheSave(topic, selected, accumulated);
     console.log("[cache] saved:", cacheKey(topic, selected));
+    window.plausible && plausible('Compare', {props: {topic, traditions: selected.join(', ')}});
     showShareBar(topic, selected, accumulated);
   showTipJar();
 
   } catch (err) {
     document.getElementById("loading").classList.add("hidden");
-    alert(t('alertError') + err.message);
+    showError(t('alertError') + err.message);
   } finally {
     btn.disabled = false;
   }
 }
 
-// Allow Enter key to trigger compare
+// ─── Inline error handling ────────────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('compareError');
+  if (!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.hidden = true; }, 5000);
+}
+
+function clearError() {
+  const el = document.getElementById('compareError');
+  if (el) { el.hidden = true; el.textContent = ''; }
+}
+
+// Enter or Cmd/Ctrl+Enter triggers compare
 document.getElementById("topic").addEventListener("keydown", (e) => {
   if (e.key === "Enter") compare();
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") compare();
 });
 
 // ─── Share ────────────────────────────────────────────────────────────────────
@@ -432,7 +515,25 @@ function surpriseMe() {
   if (traditionsParam) {
     const requested = new Set(traditionsParam.split(',').map(s => s.trim()));
     document.querySelectorAll('.checkboxes input[type="checkbox"]').forEach(cb => {
-      cb.checked = requested.has(cb.value);
+      if (requested.has(cb.value)) {
+        cb.checked = true;
+        return;
+      }
+      const denoms = DENOMINATION_GROUPS[cb.value];
+      if (denoms) {
+        const match = denoms.find(d => requested.has(d.value));
+        if (match) {
+          cb.checked = true;
+          cb.dataset.effectiveValue = match.value;
+          const group = cb.closest('.trad-group');
+          if (group) {
+            group.querySelectorAll('.denom-pill').forEach(p =>
+              p.classList.toggle('active', p.dataset.value === match.value)
+            );
+            if (match.value !== cb.value) group.classList.add('expanded');
+          }
+        }
+      }
     });
   }
 

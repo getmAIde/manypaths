@@ -18,6 +18,12 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/logo/favicon-32.png">
   <link rel="apple-touch-icon" href="/logo/icon-180.svg">
   <link rel="stylesheet" href="styles.css">
+  <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://plausible.io/js/pa-PAwFG9E8_PCHYVT6kW6Js.js"></script>
+  <script>
+    window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    plausible.init()
+  </script>
 </head>
 <style>
   .beta-nav-badge { display: inline-block; font-size: 0.6rem; font-family: 'Josefin Sans', sans-serif; letter-spacing: 0.06em; color: #c8900e; border: 1px solid #c8900e; border-radius: 3px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
@@ -27,13 +33,37 @@
   .topic-row input { flex: 1; }
   .surprise-btn { font-family: 'Josefin Sans', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; white-space: nowrap; color: var(--accent, #c8900e); background: none; border: 1px solid var(--border, rgba(200,144,14,0.3)); border-radius: 20px; padding: 0.4rem 0.9rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
   .surprise-btn:hover { border-color: #c8900e; background: rgba(200,144,14,0.08); }
+
+  /* ─── Lectionary widget ─── */
+  #lectWidget { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1.1rem; margin-bottom:1.25rem; font-family:'Josefin Sans',sans-serif; }
+  #lectWidget.hidden { display:none; }
+  .lect-eyebrow { font-size:0.58rem; font-weight:700; letter-spacing:1.5px; color:var(--accent); text-transform:uppercase; white-space:nowrap; }
+  .lect-name { font-size:0.82rem; font-weight:600; color:var(--text); white-space:nowrap; }
+  .lect-gospel { font-size:0.78rem; color:var(--text-muted); margin-left:auto; }
+  .lect-actions { display:flex; gap:0.5rem; flex-wrap:wrap; margin-left:auto; }
+  .lect-btn { font-family:'Josefin Sans',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.5px; background:none; border:1px solid var(--border); border-radius:20px; padding:0.22rem 0.7rem; cursor:pointer; color:var(--accent); transition:border-color 0.15s,background 0.15s; white-space:nowrap; }
+  .lect-btn:hover { border-color:var(--accent2); background:rgba(200,144,14,0.08); }
+  @media (max-width:600px) { #lectWidget { flex-direction:column; align-items:flex-start; gap:0.4rem; } .lect-gospel,.lect-actions { margin-left:0; } }
+
+  /* ─── Denomination pickers ─── */
+  .trad-group { display: inline-flex; align-items: center; }
+  .trad-group.expanded { flex: 0 0 100%; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .trad-label-row { display: flex; align-items: center; gap: 0.25rem; }
+  .denom-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted, #888); font-size: 0.6rem; padding: 0.1rem 0.2rem; line-height: 1; opacity: 0.5; transition: opacity 0.15s, transform 0.2s; flex-shrink: 0; }
+  .denom-toggle:hover { opacity: 1; }
+  .trad-group.expanded .denom-toggle { transform: rotate(180deg); }
+  .denom-row { display: none; flex-wrap: wrap; gap: 0.3rem; padding-left: 0.25rem; }
+  .trad-group.expanded .denom-row { display: flex; }
+  .denom-pill { font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0.18rem 0.55rem; cursor: pointer; color: var(--text-muted); transition: border-color 0.15s, background 0.15s, color 0.15s; }
+  .denom-pill:hover { border-color: rgba(200,144,14,0.4); color: var(--text); }
+  .denom-pill.active { border-color: #c8900e; background: rgba(200,144,14,0.12); color: #c8900e; }
 </style>
 <body>
   <nav class="topnav">
     <a class="topnav-brand" href="/">Many Paths <span class="beta-nav-badge">BETA</span></a>
     <div class="topnav-links">
       <a class="topnav-link topnav-active" href="/">Compare</a>
-      <a class="topnav-link" href="/research">Research <span class="new-nav-badge">NEW</span></a>
+      <a class="topnav-link" href="/research" onclick="window.plausible && plausible('Research Click', {props: {source: 'nav'}})">Research <span class="new-nav-badge">NEW</span></a>
     </div>
   </nav>
   <div class="app">
@@ -55,6 +85,17 @@
     </header>
 
     <main>
+      <!-- Lectionary widget — populated by lectionary.js -->
+      <div id="lectWidget" class="hidden">
+        <span class="lect-eyebrow">This Sunday</span>
+        <span class="lect-name" id="lectName"></span>
+        <span class="lect-gospel" id="lectGospel"></span>
+        <div class="lect-actions">
+          <button class="lect-btn" id="lectCompareBtn">Compare this theme →</button>
+          <button class="lect-btn" id="lectResearchBtn">Research this passage →</button>
+        </div>
+      </div>
+
       <section class="controls">
         <div class="topic-input">
           <label for="topic">Choose a topic</label>
@@ -67,10 +108,62 @@
         <div class="religion-select">
           <label>Select religions to compare (pick 2-4)</label>
           <div class="checkboxes">
-            <label><input type="checkbox" value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
-            <label><input type="checkbox" value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
-            <label><input type="checkbox" value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
-            <label><input type="checkbox" value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
+            <!-- Christianity -->
+            <div class="trad-group">
+              <div class="trad-label-row">
+                <label><input type="checkbox" value="Christianity" data-effective-value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
+                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+              </div>
+              <div class="denom-row">
+                <button type="button" class="denom-pill active" data-value="Christianity" onclick="selectDenom(this)">All</button>
+                <button type="button" class="denom-pill" data-value="Roman Catholic" onclick="selectDenom(this)">Catholic</button>
+                <button type="button" class="denom-pill" data-value="Eastern Orthodox" onclick="selectDenom(this)">Orthodox</button>
+                <button type="button" class="denom-pill" data-value="Baptist" onclick="selectDenom(this)">Baptist</button>
+                <button type="button" class="denom-pill" data-value="Methodist" onclick="selectDenom(this)">Methodist</button>
+                <button type="button" class="denom-pill" data-value="Lutheran" onclick="selectDenom(this)">Lutheran</button>
+                <button type="button" class="denom-pill" data-value="Pentecostal" onclick="selectDenom(this)">Pentecostal</button>
+              </div>
+            </div>
+            <!-- Judaism -->
+            <div class="trad-group">
+              <div class="trad-label-row">
+                <label><input type="checkbox" value="Judaism" data-effective-value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
+                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+              </div>
+              <div class="denom-row">
+                <button type="button" class="denom-pill active" data-value="Judaism" onclick="selectDenom(this)">All</button>
+                <button type="button" class="denom-pill" data-value="Orthodox Judaism" onclick="selectDenom(this)">Orthodox</button>
+                <button type="button" class="denom-pill" data-value="Conservative Judaism" onclick="selectDenom(this)">Conservative</button>
+                <button type="button" class="denom-pill" data-value="Reform Judaism" onclick="selectDenom(this)">Reform</button>
+              </div>
+            </div>
+            <!-- Islam -->
+            <div class="trad-group">
+              <div class="trad-label-row">
+                <label><input type="checkbox" value="Islam" data-effective-value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
+                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+              </div>
+              <div class="denom-row">
+                <button type="button" class="denom-pill active" data-value="Islam" onclick="selectDenom(this)">All</button>
+                <button type="button" class="denom-pill" data-value="Sunni Islam" onclick="selectDenom(this)">Sunni</button>
+                <button type="button" class="denom-pill" data-value="Shia Islam" onclick="selectDenom(this)">Shia</button>
+                <button type="button" class="denom-pill" data-value="Sufi Islam" onclick="selectDenom(this)">Sufi</button>
+              </div>
+            </div>
+            <!-- Buddhism -->
+            <div class="trad-group">
+              <div class="trad-label-row">
+                <label><input type="checkbox" value="Buddhism" data-effective-value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
+                <button type="button" class="denom-toggle" onclick="toggleDenom(this)" title="Select denomination">▾</button>
+              </div>
+              <div class="denom-row">
+                <button type="button" class="denom-pill active" data-value="Buddhism" onclick="selectDenom(this)">All</button>
+                <button type="button" class="denom-pill" data-value="Theravada Buddhism" onclick="selectDenom(this)">Theravada</button>
+                <button type="button" class="denom-pill" data-value="Zen Buddhism" onclick="selectDenom(this)">Zen</button>
+                <button type="button" class="denom-pill" data-value="Tibetan Buddhism" onclick="selectDenom(this)">Tibetan</button>
+              </div>
+            </div>
+            <!-- No denomination picker needed -->
             <label><input type="checkbox" value="Hinduism"> <span class="cb-sym" style="color:#D85A30">ॐ</span> Hinduism</label>
             <label><input type="checkbox" value="Taoism"> <span class="cb-sym" style="color:#5DCAA5">☯</span> Taoism</label>
             <label><input type="checkbox" value="Sikhism"> <span class="cb-sym" style="color:#D4537E">☬</span> Sikhism</label>
@@ -79,6 +172,7 @@
         </div>
 
         <button id="compareBtn" onclick="compare()">Compare →</button>
+        <p id="compareError" hidden style="margin-top:0.65rem;font-size:0.82rem;color:#e05a3a;font-family:'Josefin Sans',sans-serif;letter-spacing:0.03em;text-align:center;"></p>
       </section>
 
       <section id="loading" class="hidden">
@@ -104,11 +198,12 @@
     <footer>
       <div class="beta-footer-note">Compare is always free · Research is live — try free during beta</div>
       <p>Many Paths presents scholarship for educational purposes only. Part of the <a href="https://getmaide.com">getmAIde</a> family. · <a href="mailto:feedback@manypaths.one?subject=Report an issue — Many Paths">Report an issue</a></p>
+      <p style="margin-top:0.5rem;font-size:0.75rem;opacity:0.55;">Helping congregations navigate social services → <a href="https://waythrough.one" target="_blank" rel="noopener noreferrer" style="color:inherit;">WayThrough</a></p>
     </footer>
   </div>
   <script src="i18n.js"></script>
   <script src="quote-card.js"></script>
   <script src="app.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
+  <script src="lectionary.js"></script>
 </body>
 </html>
