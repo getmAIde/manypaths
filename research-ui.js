@@ -74,9 +74,11 @@
   function incCount(key)  { localStorage.setItem(key, getCount(key) + 1); }
 
   function limitConfig(mode, depth) {
-    if (mode === 'sermon_brief') return FREE_LIMITS.sermon_brief;
-    if (depth === 'study')       return FREE_LIMITS.study;
-    return null; // quick = unlimited
+    if (mode === 'sermon_brief')       return FREE_LIMITS.sermon_brief;
+    if (depth === 'study')             return FREE_LIMITS.study;
+    if (depth === 'preaching_outline') return FREE_LIMITS.study;     // study-tier
+    if (depth === 'denomination')      return FREE_LIMITS.denomination;
+    return null; // quick / devotional / childrens_lesson = unlimited
   }
 
   function isOverLimit(mode, depth) {
@@ -479,8 +481,8 @@
 
     const isSermon = currentMode === 'sermon_brief';
     depthBtns.forEach(b => {
-      b.disabled = isSermon && b.dataset.depth !== 'sermon_brief';
-      if (isSermon) b.classList.toggle('active', b.dataset.depth === 'sermon_brief');
+      b.disabled = isSermon;
+      if (isSermon) b.classList.remove('active');
     });
 
     if (isSermon) {
@@ -644,7 +646,7 @@
       wrap.appendChild(buildTraditionCard(tradition, content));
     });
 
-    if (mode === 'sermon_brief' && sermonAngle) {
+    if (sermonAngle) {
       const block = document.createElement('div');
       block.className = 'sermon-angle-block';
       block.innerHTML = `
@@ -716,6 +718,7 @@
     const body = document.createElement('div');
     body.className = 'research-card-body';
 
+    // ── Standard fields (verse/topic/keyword quick/study) ────────────────────
     if (content.passage) {
       const bq = document.createElement('blockquote');
       bq.className = 'research-blockquote';
@@ -731,6 +734,52 @@
       body.insertAdjacentHTML('beforeend', `
         <p class="research-field-label">Context</p>
         <p class="research-field-text">${escHtml(content.context)}</p>`);
+    }
+
+    // ── Devotional fields ──────────────────────────────────────────────────
+    if (content.scripture && !content.passage) {
+      const bq = document.createElement('blockquote');
+      bq.className = 'research-blockquote';
+      bq.textContent = content.scripture;
+      body.appendChild(bq);
+    }
+    if (content.reflection) {
+      body.insertAdjacentHTML('beforeend', `
+        <p class="research-field-text research-reflection">${escHtml(content.reflection)}</p>`);
+    }
+
+    // ── Preaching Outline fields ──────────────────────────────────────────
+    if (content.main_point) {
+      body.insertAdjacentHTML('beforeend', `
+        <p class="research-field-label">Main Point</p>
+        <p class="research-field-text" style="font-style:italic">${escHtml(content.main_point)}</p>`);
+    }
+    if (Array.isArray(content.sub_points) && content.sub_points.length) {
+      const ol = document.createElement('ol');
+      ol.className = 'research-outline';
+      content.sub_points.forEach(pt => {
+        const li = document.createElement('li');
+        li.textContent = pt;
+        ol.appendChild(li);
+      });
+      body.appendChild(ol);
+    }
+
+    // ── Children's Lesson fields ──────────────────────────────────────────
+    if (content.story_hook) {
+      body.insertAdjacentHTML('beforeend', `
+        <p class="research-field-label">Story Hook</p>
+        <p class="research-field-text">${escHtml(content.story_hook)}</p>`);
+    }
+    if (content.teaching) {
+      body.insertAdjacentHTML('beforeend', `
+        <p class="research-field-label">Teaching</p>
+        <p class="research-field-text">${escHtml(content.teaching)}</p>`);
+    }
+    if (content.discussion_question) {
+      body.insertAdjacentHTML('beforeend', `
+        <p class="research-field-label">Discussion Question</p>
+        <p class="research-field-text research-discussion">${escHtml(content.discussion_question)}</p>`);
     }
 
     card.appendChild(header);

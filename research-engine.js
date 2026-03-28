@@ -19,9 +19,12 @@ const _cache = new Map();
 // Tokens scale with tradition count — original spec assumed 2-3 traditions;
 // 7 traditions × ~200 tokens each needs headroom. Keep sermon_brief tight.
 const MAX_TOKENS = {
-  quick:        2000,
-  study:        4000,
-  sermon_brief: 3000,
+  quick:             2000,
+  study:             4000,
+  sermon_brief:      3000,
+  devotional:        2000,
+  preaching_outline: 3000,
+  childrens_lesson:  2500,
 };
 
 // ─── Tradition context — imported from shared module ─────────────────────────
@@ -220,6 +223,93 @@ Return valid JSON:
 ${sharedRules()}`;
   }
 
+  // ── Cross-mode formats (devotional / preaching_outline / childrens_lesson) ──
+  // These intercept before mode-specific dispatch and work with any query type.
+
+  if (depth === 'devotional') {
+    const inputLabel = mode === 'verse' ? 'Scripture' : mode === 'keyword' ? 'Word or Concept' : 'Theme';
+    return `You are an interfaith devotional writer.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "scripture": "one key verse with full citation",
+      "reflection": "a personal, meditative paragraph of 100-120 words written in the warmth of this tradition's devotional voice"
+    }
+  },
+  "commonGround": "one sentence on the shared invitation these traditions extend to the reader"
+}
+
+Rules:
+- Warm, personal, accessible prose — not academic
+- Each reflection must feel distinctly shaped by that tradition's spirituality
+- Never scary, preachy, or exclusionary
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  if (depth === 'preaching_outline') {
+    const inputLabel = mode === 'verse' ? 'Text' : mode === 'keyword' ? 'Word or Concept' : 'Theme';
+    return `You are an interfaith preaching coach preparing sermon outlines.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "passage": "key passage with citation",
+      "main_point": "the central preaching point — one punchy, memorable sentence",
+      "sub_points": ["I. First movement", "II. Second movement", "III. Third movement — application"]
+    }
+  },
+  "sermonAngle": "a unifying angle that a preacher could carry through all these traditions — one paragraph",
+  "commonGround": "what all these traditions converge on for this theme — 1-2 sentences"
+}
+
+Rules:
+- sub_points: exactly 3, labelled I. II. III. — each a complete thought
+- main_point: preachable, memorable, one sentence
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  if (depth === 'childrens_lesson') {
+    const inputLabel = mode === 'verse' ? 'Scripture' : mode === 'keyword' ? 'Word or Concept' : 'Theme';
+    return `You are an interfaith religious educator designing lessons for ages 8-12.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "story_hook": "a 2-sentence story or vivid image to open the lesson — concrete and child-friendly",
+      "teaching": "what this tradition teaches, in simple words an 8-year-old understands — 2-3 sentences",
+      "scripture": "one short, child-friendly verse or teaching saying with citation",
+      "discussion_question": "one open question to ask children — something they can actually answer from their own life"
+    }
+  },
+  "commonGround": "one sentence: what all these traditions teach children to do or feel about this"
+}
+
+Rules:
+- No jargon — if a big word appears, explain it in the same breath
+- Concrete images and stories over abstract theology
+- Inclusive, warm, never scary or exclusionary
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
   throw new Error(`Unknown mode: ${mode}`);
 }
 
@@ -260,7 +350,7 @@ export async function runResearch(mode, depth, input, traditions) {
   if (!Array.isArray(traditions) || !traditions.length)  throw new Error('at least one tradition is required');
 
   const validModes  = ['verse', 'topic', 'keyword', 'sermon_brief'];
-  const validDepths = ['quick', 'study', 'sermon_brief'];
+  const validDepths = ['quick', 'study', 'sermon_brief', 'devotional', 'preaching_outline', 'childrens_lesson'];
   if (!validModes.includes(mode))   throw new Error(`invalid mode: ${mode}`);
   if (!validDepths.includes(depth)) throw new Error(`invalid depth: ${depth}`);
 
@@ -273,7 +363,8 @@ export async function runResearch(mode, depth, input, traditions) {
     return _cache.get(key);
   }
 
-  const model     = mode === 'sermon_brief' ? MODEL_HAIKU : MODEL_SONNET;
+  const haiku_formats = ['sermon_brief', 'devotional', 'childrens_lesson'];
+  const model     = haiku_formats.includes(effectiveDepth) ? MODEL_HAIKU : MODEL_SONNET;
   const maxTokens = MAX_TOKENS[effectiveDepth];
   const prompt    = buildPrompt(mode, effectiveDepth, input, traditions);
 

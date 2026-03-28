@@ -329,7 +329,7 @@
 
     #otherTradition::placeholder { color: var(--text-muted); opacity: 0.6; }
 
-    /* ─── Depth selector ─── */
+    /* ─── Format selector ─── */
     .depth-select { margin-bottom: 1.75rem; }
 
     .depth-select > label {
@@ -344,22 +344,23 @@
 
     .depth-buttons {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.35rem;
     }
 
     .depth-btn {
-      flex: 1;
       font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 600;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       color: var(--text-muted);
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.55rem 0.5rem;
+      border-radius: 20px;
+      padding: 0.4rem 0.85rem;
       cursor: pointer;
+      white-space: nowrap;
       transition: border-color 0.18s, background 0.18s, color 0.18s;
     }
 
@@ -379,6 +380,27 @@
       opacity: 0.3;
       cursor: not-allowed;
     }
+
+    /* ─── New format content fields ─── */
+    .research-reflection {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-style: italic;
+      font-size: 0.97rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .research-discussion {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .research-outline {
+      margin: 0.5rem 0 0 1.2rem;
+      padding: 0;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .research-outline li { margin-bottom: 0.25rem; }
 
     /* ─── Action buttons ─── */
     .action-row {
@@ -447,8 +469,8 @@
       .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       .tab-bar::-webkit-scrollbar { display: none; }
       .tab-btn { white-space: nowrap; padding: 0.55rem 0.7rem; }
-      /* Depth buttons — tighten letter-spacing so "Sermon Brief" stays one line */
-      .depth-btn { letter-spacing: 0.5px; font-size: 0.65rem; padding: 0.55rem 0.3rem; }
+      /* Format buttons — pill style, let them wrap naturally on mobile */
+      .depth-btn { font-size: 0.62rem; padding: 0.35rem 0.65rem; }
       /* Action row — stack Run + Inspire vertically */
       .action-row { flex-direction: column; }
       #runBtn, #inspireBtn { width: 100%; }
@@ -606,13 +628,15 @@
           <p style="margin-top:0.45rem;font-size:0.72rem;color:var(--text-muted);font-family:'Josefin Sans',sans-serif;letter-spacing:0.03em;">Millions of people belong to traditions not listed above. We research them with the same depth and respect.</p>
         </div>
 
-        <!-- Depth selector -->
+        <!-- Format selector -->
         <div class="depth-select">
-          <label>Depth</label>
+          <label>Format</label>
           <div class="depth-buttons">
-            <button class="depth-btn active" data-depth="quick">Quick</button>
-            <button class="depth-btn"        data-depth="study">Study</button>
-            <button class="depth-btn"        data-depth="sermon_brief" id="depthSermon">Sermon Brief</button>
+            <button class="depth-btn active" data-depth="quick"             title="Fast one-sentence answers per tradition">Quick Answer</button>
+            <button class="depth-btn"        data-depth="study"             title="Full interpretation + historical context">Study Notes</button>
+            <button class="depth-btn"        data-depth="devotional"        title="Short personal reflection for morning devotions">Devotional</button>
+            <button class="depth-btn"        data-depth="preaching_outline" title="I/II/III sermon outline with a unifying preaching angle">Preaching Outline</button>
+            <button class="depth-btn"        data-depth="childrens_lesson"  title="Story-based lesson for ages 8-12">Children's Lesson</button>
           </div>
         </div>
 
