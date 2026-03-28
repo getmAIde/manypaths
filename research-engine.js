@@ -5,6 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { track } from './costTracker.js';
 import { resolvedModels } from './models.js';
+import { TRADITION_CONTEXT } from './tradition-context.js';
 
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
 const { sonnet: MODEL_SONNET, haiku: MODEL_HAIKU } = resolvedModels();
@@ -23,11 +24,8 @@ const MAX_TOKENS = {
   sermon_brief: 3000,
 };
 
-// ─── Tradition context (injected when that tradition is present) ──────────────
-
-const TRADITION_CONTEXT = {
-  'Latter-day Saints': 'The Church of Jesus Christ of Latter-day Saints (Latter-day Saints): Restoration theology — the Church as the restored original church of Jesus Christ. Scripture includes the Bible and Book of Mormon as companion witnesses of Christ. Continuing revelation through a living prophet. Eternal progression and exaltation. Sacred temple ordinances. Lay priesthood. Strong emphasis on family, community, and self-reliance. Christ-centered in all theology and practice.',
-};
+// ─── Tradition context — imported from shared module ─────────────────────────
+// TRADITION_CONTEXT covers all 8 traditions + all denominations.
 
 function traditionContextNote(traditions) {
   const notes = traditions

@@ -147,7 +147,74 @@ function cacheGet(topic, religions) {
 function cacheSave(topic, religions, data) {
   try {
     localStorage.setItem(cacheKey(topic, religions), JSON.stringify(data));
+    historySave(topic, religions);
   } catch { /* storage full — silently skip */ }
+}
+
+// ─── History helpers ──────────────────────────────────────────────────────────
+const HISTORY_KEY = 'mp_history';
+const HISTORY_MAX = 8;
+
+function historyGet() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function historySave(topic, religions) {
+  try {
+    const hist = historyGet().filter(h =>
+      !(h.topic.toLowerCase() === topic.toLowerCase() &&
+        [...h.religions].sort().join(',') === [...religions].sort().join(','))
+    );
+    hist.unshift({ topic, religions: [...religions], ts: Date.now() });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(0, HISTORY_MAX)));
+    historyRender();
+  } catch { /* storage full */ }
+}
+
+function historyRender() {
+  const hist = historyGet();
+  let wrap = document.getElementById('historyWrap');
+  if (!hist.length) { if (wrap) wrap.remove(); return; }
+
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'historyWrap';
+    wrap.style.cssText = 'margin-bottom:1rem;';
+    const controls = document.querySelector('.controls');
+    if (controls) controls.parentNode.insertBefore(wrap, controls);
+  }
+
+  wrap.innerHTML = `
+    <div style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;font-family:'Josefin Sans',sans-serif;">Recent</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+      ${hist.map((h, i) => {
+        const syms = h.religions.map(r => TRADITION_SYMBOL[r]?.sym || TRADITION_SYMBOL[DENOMINATION_PARENT?.[r]]?.sym || '✦').join('');
+        return `<button
+          onclick="historyLoad(${i})"
+          style="font-family:'Josefin Sans',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.3px;
+                 background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+                 padding:0.25rem 0.7rem;cursor:pointer;color:var(--text-muted);
+                 transition:border-color 0.15s,color 0.15s;white-space:nowrap;"
+          onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+          ${syms} ${h.topic}
+        </button>`;
+      }).join('')}
+    </div>`;
+}
+
+function historyLoad(i) {
+  const h = historyGet()[i];
+  if (!h) return;
+  document.getElementById('topic').value = h.topic;
+  // Uncheck all, then check matching
+  document.querySelectorAll('.checkboxes input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  h.religions.forEach(r => {
+    const cb = document.querySelector(`.checkboxes input[value="${CSS.escape(r)}"], .checkboxes input[data-effective-value="${CSS.escape(r)}"]`);
+    if (cb) cb.checked = true;
+  });
+  compare();
 }
 
 // ─── Build cards (shared by live + cached paths) ──────────────────────────────
@@ -502,6 +569,9 @@ function surpriseMe() {
   document.getElementById('topic').value = pick;
   document.getElementById('topic').focus();
 }
+
+// ─── History on load ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', historyRender);
 
 // ─── URL param auto-run ───────────────────────────────────────────────────────
 (function initFromURL() {
