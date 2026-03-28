@@ -23,6 +23,7 @@
           "quote-card.js",
           "i18n.js",
           "research-ui.js",
+          "lectionary.js",
           "og-default.png",
           "research-engine.js",
           "og-generator.js",

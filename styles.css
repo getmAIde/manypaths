@@ -575,8 +575,11 @@ footer a:hover { text-decoration: underline; }
   .controls { padding: 1.5rem; }
   .columns  { grid-template-columns: 1fr; }
   .lang-wrap { position: static; text-align: center; margin-bottom: 1rem; }
+  /* Religion selector — consistent 2-column grid */
+  .checkboxes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+  .trad-group.expanded { grid-column: 1 / -1; }
   /* Bigger tap targets for checkboxes */
-  .checkboxes label { padding: 0.5rem 1rem 0.5rem 0.85rem; font-size: 0.8rem; }
+  .checkboxes label { padding: 0.5rem 0.75rem 0.5rem 0.75rem; font-size: 0.8rem; }
   .checkboxes input[type="checkbox"] { width: 17px; height: 17px; }
   /* Denomination controls */
   .denom-toggle { font-size: 0.75rem; padding: 0.3rem 0.5rem; opacity: 0.7; }

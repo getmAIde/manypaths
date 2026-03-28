@@ -429,6 +429,19 @@
       margin-top: 2rem;
       min-height: 2rem;
     }
+
+    /* ─── Mobile (375px) ─── */
+    @media (max-width: 600px) {
+      /* Tab bar scrolls horizontally instead of clipping */
+      .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .tab-bar::-webkit-scrollbar { display: none; }
+      .tab-btn { white-space: nowrap; padding: 0.55rem 0.7rem; }
+      /* Depth buttons — tighten letter-spacing so "Sermon Brief" stays one line */
+      .depth-btn { letter-spacing: 0.5px; font-size: 0.65rem; padding: 0.55rem 0.3rem; }
+      /* Action row — stack Run + Inspire vertically */
+      .action-row { flex-direction: column; }
+      #runBtn, #inspireBtn { width: 100%; }
+    }
   </style>
 </head>
 <body>
