@@ -229,6 +229,29 @@ header h1 {
   height: 14px;
 }
 
+/* ─── Denomination pickers (Compare + Research) ─────────────────────────── */
+.trad-group { display: inline-flex; align-items: center; }
+.trad-group.expanded { flex: 0 0 100%; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+.trad-label-row { display: flex; align-items: center; gap: 0.25rem; }
+.denom-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted, #888); font-size: 0.6rem;
+  padding: 0.1rem 0.2rem; line-height: 1;
+  opacity: 0.5; transition: opacity 0.15s, transform 0.2s; flex-shrink: 0;
+}
+.denom-toggle:hover { opacity: 1; }
+.trad-group.expanded .denom-toggle { transform: rotate(180deg); }
+.denom-row { display: none; flex-wrap: wrap; gap: 0.3rem; padding-left: 0.25rem; }
+.trad-group.expanded .denom-row { display: flex; }
+.denom-pill {
+  font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 0.5px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.18rem 0.55rem; cursor: pointer; color: var(--text-muted);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.denom-pill:hover { border-color: rgba(200,144,14,0.4); color: var(--text); }
+.denom-pill.active { border-color: #c8900e; background: rgba(200,144,14,0.12); color: #c8900e; }
+
 #compareBtn {
   width: 100%;
   background: linear-gradient(135deg, #a06c10, #d4a022, #c08010);
