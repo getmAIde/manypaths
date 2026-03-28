@@ -45,18 +45,6 @@
   .lect-btn:hover { border-color:var(--accent2); background:rgba(200,144,14,0.08); }
   @media (max-width:600px) { #lectWidget { flex-direction:column; align-items:flex-start; gap:0.4rem; } .lect-gospel,.lect-actions { margin-left:0; } }
 
-  /* ─── Denomination pickers ─── */
-  .trad-group { display: inline-flex; align-items: center; }
-  .trad-group.expanded { flex: 0 0 100%; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
-  .trad-label-row { display: flex; align-items: center; gap: 0.25rem; }
-  .denom-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted, #888); font-size: 0.6rem; padding: 0.1rem 0.2rem; line-height: 1; opacity: 0.5; transition: opacity 0.15s, transform 0.2s; flex-shrink: 0; }
-  .denom-toggle:hover { opacity: 1; }
-  .trad-group.expanded .denom-toggle { transform: rotate(180deg); }
-  .denom-row { display: none; flex-wrap: wrap; gap: 0.3rem; padding-left: 0.25rem; }
-  .trad-group.expanded .denom-row { display: flex; }
-  .denom-pill { font-family: 'Josefin Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0.18rem 0.55rem; cursor: pointer; color: var(--text-muted); transition: border-color 0.15s, background 0.15s, color 0.15s; }
-  .denom-pill:hover { border-color: rgba(200,144,14,0.4); color: var(--text); }
-  .denom-pill.active { border-color: #c8900e; background: rgba(200,144,14,0.12); color: #c8900e; }
 </style>
 <body>
   <nav class="topnav">
@@ -108,62 +96,10 @@
         <div class="religion-select">
           <label>Select religions to compare (pick 2-4)</label>
           <div class="checkboxes">
-            <!-- Christianity -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Christianity" data-effective-value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Christianity">All</button>
-                <button type="button" class="denom-pill" data-value="Roman Catholic">Catholic</button>
-                <button type="button" class="denom-pill" data-value="Eastern Orthodox">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Baptist">Baptist</button>
-                <button type="button" class="denom-pill" data-value="Methodist">Methodist</button>
-                <button type="button" class="denom-pill" data-value="Lutheran">Lutheran</button>
-                <button type="button" class="denom-pill" data-value="Pentecostal">Pentecostal</button>
-              </div>
-            </div>
-            <!-- Judaism -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Judaism" data-effective-value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Judaism">All</button>
-                <button type="button" class="denom-pill" data-value="Orthodox Judaism">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Conservative Judaism">Conservative</button>
-                <button type="button" class="denom-pill" data-value="Reform Judaism">Reform</button>
-              </div>
-            </div>
-            <!-- Islam -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Islam" data-effective-value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Islam">All</button>
-                <button type="button" class="denom-pill" data-value="Sunni Islam">Sunni</button>
-                <button type="button" class="denom-pill" data-value="Shia Islam">Shia</button>
-                <button type="button" class="denom-pill" data-value="Sufi Islam">Sufi</button>
-              </div>
-            </div>
-            <!-- Buddhism -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Buddhism" data-effective-value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Buddhism">All</button>
-                <button type="button" class="denom-pill" data-value="Theravada Buddhism">Theravada</button>
-                <button type="button" class="denom-pill" data-value="Zen Buddhism">Zen</button>
-                <button type="button" class="denom-pill" data-value="Tibetan Buddhism">Tibetan</button>
-              </div>
-            </div>
-            <!-- No denomination picker needed -->
+            <label><input type="checkbox" value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
+            <label><input type="checkbox" value="Judaism">      <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
+            <label><input type="checkbox" value="Islam">        <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
+            <label><input type="checkbox" value="Buddhism">     <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
             <label><input type="checkbox" value="Hinduism"> <span class="cb-sym" style="color:#D85A30">ॐ</span> Hinduism</label>
             <label><input type="checkbox" value="Taoism"> <span class="cb-sym" style="color:#5DCAA5">☯</span> Taoism</label>
             <label><input type="checkbox" value="Sikhism"> <span class="cb-sym" style="color:#D4537E">☬</span> Sikhism</label>

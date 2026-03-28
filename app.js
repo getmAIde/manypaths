@@ -1,66 +1,6 @@
 let _shareURL  = '';
 let _shareText = '';
 
-// ─── Denomination data ────────────────────────────────────────────────────────
-const DENOMINATION_GROUPS = {
-  Christianity: [
-    { label: 'All',         value: 'Christianity' },
-    { label: 'Catholic',    value: 'Roman Catholic' },
-    { label: 'Orthodox',    value: 'Eastern Orthodox' },
-    { label: 'Baptist',     value: 'Baptist' },
-    { label: 'Methodist',   value: 'Methodist' },
-    { label: 'Lutheran',    value: 'Lutheran' },
-    { label: 'Pentecostal', value: 'Pentecostal' },
-  ],
-  Islam: [
-    { label: 'All',   value: 'Islam' },
-    { label: 'Sunni', value: 'Sunni Islam' },
-    { label: 'Shia',  value: 'Shia Islam' },
-    { label: 'Sufi',  value: 'Sufi Islam' },
-  ],
-  Judaism: [
-    { label: 'All',          value: 'Judaism' },
-    { label: 'Orthodox',     value: 'Orthodox Judaism' },
-    { label: 'Conservative', value: 'Conservative Judaism' },
-    { label: 'Reform',       value: 'Reform Judaism' },
-  ],
-  Buddhism: [
-    { label: 'All',       value: 'Buddhism' },
-    { label: 'Theravada', value: 'Theravada Buddhism' },
-    { label: 'Zen',       value: 'Zen Buddhism' },
-    { label: 'Tibetan',   value: 'Tibetan Buddhism' },
-  ],
-};
-
-const DENOMINATION_PARENT = {
-  'Roman Catholic':       'Christianity',
-  'Eastern Orthodox':     'Christianity',
-  'Baptist':              'Christianity',
-  'Methodist':            'Christianity',
-  'Lutheran':             'Christianity',
-  'Pentecostal':          'Christianity',
-  'Sunni Islam':          'Islam',
-  'Shia Islam':           'Islam',
-  'Sufi Islam':           'Islam',
-  'Orthodox Judaism':     'Judaism',
-  'Conservative Judaism': 'Judaism',
-  'Reform Judaism':       'Judaism',
-  'Theravada Buddhism':   'Buddhism',
-  'Zen Buddhism':         'Buddhism',
-  'Tibetan Buddhism':     'Buddhism',
-};
-
-function toggleDenom(btn) {
-  btn.closest('.trad-group').classList.toggle('expanded');
-}
-
-function selectDenom(pill) {
-  const group = pill.closest('.trad-group');
-  group.querySelectorAll('.denom-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  const cb = group.querySelector('input[type="checkbox"]');
-  cb.dataset.effectiveValue = pill.dataset.value;
-}
 
 const TRADITION_SYMBOL = {
   Christianity:        { sym: "✝", color: "#7F77DD" },
@@ -211,7 +151,7 @@ function historyLoad(i) {
   // Uncheck all, then check matching
   document.querySelectorAll('.checkboxes input[type="checkbox"]').forEach(cb => { cb.checked = false; });
   h.religions.forEach(r => {
-    const cb = document.querySelector(`.checkboxes input[value="${CSS.escape(r)}"], .checkboxes input[data-effective-value="${CSS.escape(r)}"]`);
+    const cb = document.querySelector(`.checkboxes input[value="${CSS.escape(r)}"]`);
     if (cb) cb.checked = true;
   });
   compare();
@@ -262,7 +202,7 @@ async function compare() {
   const topic = document.getElementById("topic").value.trim();
   const selected = [
     ...document.querySelectorAll(".checkboxes input:checked"),
-  ].map((cb) => cb.dataset.effectiveValue || cb.value);
+  ].map((cb) => cb.value);
 
   clearError();
   if (!topic) { showError(t('alertNoTopic')); return; }
@@ -587,17 +527,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const langPicker = document.getElementById('langPicker');
   if (langPicker) langPicker.addEventListener('change', (e) => setLanguage(e.target.value));
 
-  // denom toggles + pills — event delegation on .checkboxes
-  const checkboxes = document.querySelector('.checkboxes');
-  if (checkboxes) {
-    checkboxes.addEventListener('click', (e) => {
-      const toggle = e.target.closest('.denom-toggle');
-      if (toggle) { toggleDenom(toggle); return; }
-      const pill = e.target.closest('.denom-pill');
-      if (pill) { selectDenom(pill); return; }
-    });
-  }
-
   // Research nav link Plausible tracking
   const researchNavLink = document.querySelector('a[href="/research"].topnav-link');
   if (researchNavLink) {
@@ -619,25 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (traditionsParam) {
     const requested = new Set(traditionsParam.split(',').map(s => s.trim()));
     document.querySelectorAll('.checkboxes input[type="checkbox"]').forEach(cb => {
-      if (requested.has(cb.value)) {
-        cb.checked = true;
-        return;
-      }
-      const denoms = DENOMINATION_GROUPS[cb.value];
-      if (denoms) {
-        const match = denoms.find(d => requested.has(d.value));
-        if (match) {
-          cb.checked = true;
-          cb.dataset.effectiveValue = match.value;
-          const group = cb.closest('.trad-group');
-          if (group) {
-            group.querySelectorAll('.denom-pill').forEach(p =>
-              p.classList.toggle('active', p.dataset.value === match.value)
-            );
-            if (match.value !== cb.value) group.classList.add('expanded');
-          }
-        }
-      }
+      if (requested.has(cb.value)) cb.checked = true;
     });
   }
 
