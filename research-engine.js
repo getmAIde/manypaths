@@ -253,7 +253,7 @@ Return valid JSON:
 
 Rules:
 - Warm, personal, accessible prose — not academic
-- Each reflection must feel distinctly shaped by that tradition's spirituality
+- Each reflection must feel distinctly shaped by that tradition's spirituality — use the DEVOTIONAL/TEACHING VOICE specified in the tradition context notes above
 - Never scary, preachy, or exclusionary
 - Return ONLY the JSON object, no markdown fences`;
   }
@@ -283,6 +283,7 @@ Return valid JSON:
 Rules:
 - sub_points: exactly 3, labelled I. II. III. — each a complete thought
 - main_point: preachable, memorable, one sentence
+- Shape the outline to match that tradition's preaching structure and voice — use the PREACHING VOICE specified in the tradition context notes above
 - Return ONLY the JSON object, no markdown fences`;
   }
 
@@ -311,6 +312,7 @@ Return valid JSON:
 Rules:
 - No jargon — if a big word appears, explain it in the same breath
 - Concrete images and stories over abstract theology
+- Shape the lesson to match that tradition's teaching style — use the TEACHING VOICE specified in the tradition context notes above
 - Inclusive, warm, never scary or exclusionary
 - Return ONLY the JSON object, no markdown fences`;
   }
@@ -370,7 +372,7 @@ Return valid JSON:
 
 Rules:
 - Never toxic positivity — name the grief before the hope
-- Use each tradition's authentic language for loss, afterlife, and consolation
+- Use each tradition's authentic language for loss, afterlife, and consolation — use the PREACHING VOICE specified in the tradition context notes above
 - Warm, personal, pastoral — not a theological lecture
 - Return ONLY the JSON object, no markdown fences`;
   }
@@ -397,7 +399,7 @@ Return valid JSON:
 
 Rules:
 - Joyful but not saccharine — this is a serious covenant
-- Use each tradition's authentic theology of covenant, love, and community
+- Use each tradition's authentic theology of covenant, love, and community — use the PREACHING VOICE specified in the tradition context notes above
 - Inclusive — avoid gender-specific language unless theologically essential to the tradition
 - Return ONLY the JSON object, no markdown fences`;
   }
@@ -431,6 +433,7 @@ Return valid JSON:
 Rules:
 - questions: exactly 3 per tradition — open-ended, not yes/no, accessible to non-experts
 - Questions build: opening → deeper → personal/application
+- Frame questions in language that feels natural within that tradition's communal life
 - Return ONLY the JSON object, no markdown fences`;
   }
 
@@ -458,7 +461,7 @@ Return valid JSON:
 Rules:
 - Short, intimate, personal — not a theological summary
 - Second person: \"As you sit with this...\" or \"Notice how...\"
-- Each reflection must feel distinctly shaped by that tradition's spirituality
+- Each reflection must feel distinctly shaped by that tradition's spirituality — use the DEVOTIONAL/TEACHING VOICE specified in the tradition context notes above
 - Return ONLY the JSON object, no markdown fences`;
   }
 

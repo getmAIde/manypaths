@@ -24,6 +24,26 @@ function isNewTradition(name) {
   return (Date.now() - new Date(added).getTime()) < 30 * 24 * 60 * 60 * 1000;
 }
 
+(function injectCompareHistoryStyles() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .compare-history-eyebrow {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 0.5rem; font-family: 'Josefin Sans', sans-serif;
+    }
+    .compare-history-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .compare-history-pill {
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.3px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 0.25rem 0.7rem; cursor: pointer;
+      color: var(--text-muted); transition: border-color 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .compare-history-pill:hover { border-color: var(--accent2); color: var(--accent); }
+  `;
+  document.head.appendChild(s);
+}());
+
 (function injectNewBadgeStyles() {
   const s = document.createElement('style');
   s.textContent = `
@@ -125,23 +145,25 @@ function historyRender() {
     if (controls) controls.parentNode.insertBefore(wrap, controls);
   }
 
-  wrap.innerHTML = `
-    <div style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;font-family:'Josefin Sans',sans-serif;">Recent</div>
-    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
-      ${hist.map((h, i) => {
-        const syms = h.religions.map(r => TRADITION_SYMBOL[r]?.sym || '✦').join('');
-        return `<button
-          onclick="historyLoad(${i})"
-          style="font-family:'Josefin Sans',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.3px;
-                 background:var(--surface2);border:1px solid var(--border);border-radius:20px;
-                 padding:0.25rem 0.7rem;cursor:pointer;color:var(--text-muted);
-                 transition:border-color 0.15s,color 0.15s;white-space:nowrap;"
-          onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent)'"
-          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-          ${syms} ${h.topic}
-        </button>`;
-      }).join('')}
-    </div>`;
+  wrap.innerHTML = '';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'compare-history-eyebrow';
+  eyebrow.textContent = 'Recent';
+  wrap.appendChild(eyebrow);
+
+  const row = document.createElement('div');
+  row.className = 'compare-history-row';
+  wrap.appendChild(row);
+
+  hist.forEach((h, i) => {
+    const syms = h.religions.map(r => TRADITION_SYMBOL[r]?.sym || '✦').join('');
+    const btn = document.createElement('button');
+    btn.className = 'compare-history-pill';
+    btn.textContent = `${syms} ${h.topic}`;
+    btn.addEventListener('click', () => historyLoad(i));
+    row.appendChild(btn);
+  });
 }
 
 function historyLoad(i) {

@@ -181,27 +181,27 @@
       if (actionRow) actionRow.insertAdjacentElement('beforebegin', wrap);
     }
 
-    const fmt = FORMAT_MAP;
-    wrap.innerHTML = `
-      <div style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.45rem;font-family:'Josefin Sans',sans-serif;">Recent</div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.25rem;">
-        ${hist.map((h, i) => {
-          const icon = fmt[h.format]?.icon || '✦';
-          const tradLabel = h.tradition ? ` · ${h.tradition.replace(/ (Islam|Judaism|Buddhism|Christianity)$/, '')}` : '';
-          return `<button
-            class="history-pill"
-            data-history-index="${i}"
-            style="font-family:'Josefin Sans',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.3px;
-                   background:var(--surface2);border:1px solid var(--border);border-radius:20px;
-                   padding:0.25rem 0.75rem;cursor:pointer;color:var(--text-muted);
-                   transition:border-color 0.15s,color 0.15s;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;"
-            onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"
-            title="${h.format}${tradLabel}: ${h.query}">
-            ${icon}${tradLabel} ${h.query}
-          </button>`;
-        }).join('')}
-      </div>`;
+    // Build with DOM — no inline handlers
+    wrap.innerHTML = '';
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'history-eyebrow';
+    eyebrow.textContent = 'Recent';
+    wrap.appendChild(eyebrow);
+
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    wrap.appendChild(row);
+
+    hist.forEach((h, i) => {
+      const icon     = FORMAT_MAP[h.format]?.icon || '✦';
+      const tradLabel = h.tradition ? ` · ${h.tradition.replace(/ (Islam|Judaism|Buddhism|Christianity)$/, '')}` : '';
+      const btn = document.createElement('button');
+      btn.className = 'history-pill';
+      btn.dataset.historyIndex = i;
+      btn.title = `${h.format}${tradLabel}: ${h.query}`;
+      btn.textContent = `${icon}${tradLabel} ${h.query}`;
+      row.appendChild(btn);
+    });
 
     // Wire clicks after innerHTML
     wrap.querySelectorAll('.history-pill').forEach(btn => {
@@ -426,6 +426,24 @@
       }
       .sermon-pack-nudge a { color: var(--accent); text-decoration: none; font-weight: 600; }
       .sermon-pack-nudge a:hover { text-decoration: underline; }
+
+      /* History */
+      .history-eyebrow {
+        font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px;
+        text-transform: uppercase; color: var(--text-muted);
+        margin-bottom: 0.45rem; font-family: 'Josefin Sans', sans-serif;
+      }
+      .history-row {
+        display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.25rem;
+      }
+      .history-pill {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; font-weight: 600;
+        letter-spacing: 0.3px; background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 20px; padding: 0.25rem 0.75rem; cursor: pointer;
+        color: var(--text-muted); transition: border-color 0.15s, color 0.15s;
+        white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+      }
+      .history-pill:hover { border-color: var(--accent2); color: var(--accent); }
 
       /* New badge */
       .new-badge {
