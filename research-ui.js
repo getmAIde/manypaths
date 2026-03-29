@@ -144,6 +144,90 @@
     ],
   };
 
+  // ─── Research history ──────────────────────────────────────────────────────
+
+  const RESEARCH_HISTORY_KEY = 'mp_research_history';
+  const RESEARCH_HISTORY_MAX = 10;
+
+  function researchHistoryGet() {
+    try { return JSON.parse(localStorage.getItem(RESEARCH_HISTORY_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function researchHistorySave(format, tradition, denom, query) {
+    try {
+      const entry = { format, tradition: denom || tradition || null, query, ts: Date.now() };
+      const hist  = researchHistoryGet().filter(h =>
+        !(h.format === entry.format &&
+          h.tradition === entry.tradition &&
+          h.query.toLowerCase() === entry.query.toLowerCase())
+      );
+      hist.unshift(entry);
+      localStorage.setItem(RESEARCH_HISTORY_KEY, JSON.stringify(hist.slice(0, RESEARCH_HISTORY_MAX)));
+      researchHistoryRender();
+    } catch { /* storage full */ }
+  }
+
+  function researchHistoryRender() {
+    const hist = researchHistoryGet();
+    let wrap = document.getElementById('researchHistoryWrap');
+    if (!hist.length) { if (wrap) wrap.remove(); return; }
+
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'researchHistoryWrap';
+      // Insert above the action row
+      const actionRow = document.querySelector('.action-row');
+      if (actionRow) actionRow.insertAdjacentElement('beforebegin', wrap);
+    }
+
+    const fmt = FORMAT_MAP;
+    wrap.innerHTML = `
+      <div style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.45rem;font-family:'Josefin Sans',sans-serif;">Recent</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.25rem;">
+        ${hist.map((h, i) => {
+          const icon = fmt[h.format]?.icon || '✦';
+          const tradLabel = h.tradition ? ` · ${h.tradition.replace(/ (Islam|Judaism|Buddhism|Christianity)$/, '')}` : '';
+          return `<button
+            class="history-pill"
+            data-history-index="${i}"
+            style="font-family:'Josefin Sans',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.3px;
+                   background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+                   padding:0.25rem 0.75rem;cursor:pointer;color:var(--text-muted);
+                   transition:border-color 0.15s,color 0.15s;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;"
+            onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"
+            title="${h.format}${tradLabel}: ${h.query}">
+            ${icon}${tradLabel} ${h.query}
+          </button>`;
+        }).join('')}
+      </div>`;
+
+    // Wire clicks after innerHTML
+    wrap.querySelectorAll('.history-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.historyIndex, 10);
+        const h = researchHistoryGet()[i];
+        if (!h) return;
+        selectFormat(h.format);
+        if (h.tradition) {
+          // find parent tradition key if a denomination was saved
+          const parentKey = TRADITIONS.find(t => t.key === h.tradition)?.key
+            || Object.keys(DENOMINATION_GROUPS).find(k =>
+                DENOMINATION_GROUPS[k].some(d => d.value === h.tradition));
+          selectTradition(parentKey || h.tradition);
+          // if it was a denomination, click that denom pill
+          if (parentKey && parentKey !== h.tradition) {
+            const denomPill = document.querySelector(`#denomSubpicker [data-value="${CSS.escape(h.tradition)}"]`);
+            if (denomPill) selectDenom(denomPill, h.tradition);
+          }
+        }
+        if (inputEl) inputEl.value = h.query;
+        renderChips(h.format);
+      });
+    });
+  }
+
   // ─── "New" badge ───────────────────────────────────────────────────────────
 
   const TRADITION_ADDED = { 'Latter-day Saints': '2026-03-24' };
@@ -607,6 +691,7 @@
       const cfg = limitConfig(mode, depth);
       if (cfg) { incCount(cfg.key); updateUsageIndicator(); }
 
+      researchHistorySave(currentFormat, currentTradition, currentDenom, query);
       renderResults(data);
     } catch (err) {
       resultsSection.innerHTML = `<div class="research-error">${escHtml(err.message)}</div>`;
@@ -1009,17 +1094,21 @@
       }
     }
 
-    // Init chips + indicator
+    // Init chips, indicator, history
     renderChips(currentFormat);
     updateUsageIndicator();
+    researchHistoryRender();
 
     // Pre-fill from URL params: /research?format=scripture_study&q=John+3:16
     // Also handle legacy: /research?mode=verse&q=... or input=...
+    // Compare nudge: /research?tradition=Methodist&q=forgiveness
     const params = new URLSearchParams(window.location.search);
     const legacyModeMap = { verse: 'scripture_study', topic: 'quick', keyword: 'quick', sermon: 'preaching_outline', sermon_brief: 'preaching_outline' };
-    const qFormat = params.get('format') || legacyModeMap[params.get('mode')] || null;
-    const qVal    = params.get('q') || params.get('input');
+    const qFormat    = params.get('format') || legacyModeMap[params.get('mode')] || null;
+    const qVal       = params.get('q') || params.get('input');
+    const qTradition = params.get('tradition');
 
+    if (qTradition) selectTradition(qTradition);
     if (qVal) {
       if (qFormat && FORMAT_MAP[qFormat]) selectFormat(qFormat);
       inputEl.value = decodeURIComponent(qVal);

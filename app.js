@@ -167,6 +167,7 @@ function buildCards(selected) {
     const card = document.createElement("div");
     card.className = "column-card card-enter";
     card.style.setProperty('--card-delay', `${i * 120}ms`);
+    card.dataset.religion = religion;
     const trad = TRADITION_SYMBOL[religion] || TRADITION_SYMBOL[DENOMINATION_PARENT[religion]] || { sym: "✦", color: "#c8900e" };
     card.innerHTML = `
       <h2><span class="sym" style="color:${trad.color}">${trad.sym}</span> ${tr(religion)}</h2>
@@ -194,6 +195,7 @@ function renderCached(topic, cached, selected) {
   }
   cgContent.textContent = cached.commonGround || "";
   showShareBar(topic, selected, cached);
+  showDeepNudges(topic);
   showTipJar();
 }
 
@@ -300,7 +302,8 @@ async function compare() {
     console.log("[cache] saved:", cacheKey(topic, selected));
     window.plausible && plausible('Compare', {props: {topic, traditions: selected.join(', ')}});
     showShareBar(topic, selected, accumulated);
-  showTipJar();
+    showDeepNudges(topic);
+    showTipJar();
 
   } catch (err) {
     document.getElementById("loading").classList.add("hidden");
@@ -401,6 +404,37 @@ function copyShareLink(btn) {
     document.body.removeChild(ta);
     finish();
   }
+}
+
+// ─── "Go deeper" nudge ───────────────────────────────────────────────────────
+
+(function injectDeepNudgeStyles() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .deep-nudge {
+      margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid var(--border);
+    }
+    .deep-nudge-link {
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--accent); text-decoration: none; opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    .deep-nudge-link:hover { opacity: 1; text-decoration: underline; }
+  `;
+  document.head.appendChild(s);
+}());
+
+function showDeepNudges(topic) {
+  document.querySelectorAll('.column-card[data-religion]').forEach(card => {
+    card.querySelector('.deep-nudge')?.remove();
+    const religion = card.dataset.religion;
+    const url = `/research?tradition=${encodeURIComponent(religion)}&q=${encodeURIComponent(topic)}`;
+    const nudge = document.createElement('div');
+    nudge.className = 'deep-nudge';
+    nudge.innerHTML = `<a href="${url}" class="deep-nudge-link">Go deeper in ${religion} →</a>`;
+    card.appendChild(nudge);
+  });
 }
 
 // ─── Tip jar ─────────────────────────────────────────────────────────────────
