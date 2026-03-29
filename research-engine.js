@@ -19,12 +19,17 @@ const _cache = new Map();
 // Tokens scale with tradition count — original spec assumed 2-3 traditions;
 // 7 traditions × ~200 tokens each needs headroom. Keep sermon_brief tight.
 const MAX_TOKENS = {
-  quick:             2000,
-  study:             4000,
-  sermon_brief:      3000,
-  devotional:        2000,
-  preaching_outline: 3000,
-  childrens_lesson:  2500,
+  quick:              2000,
+  study:              4000,
+  sermon_brief:       3000,
+  devotional:         2000,
+  preaching_outline:  3000,
+  childrens_lesson:   2500,
+  manuscript:         5000,
+  funeral_homily:     2500,
+  wedding_homily:     2500,
+  small_group:        3500,
+  personal_reflection:1800,
 };
 
 // ─── Tradition context — imported from shared module ─────────────────────────
@@ -310,7 +315,154 @@ Rules:
 - Return ONLY the JSON object, no markdown fences`;
   }
 
-  throw new Error(`Unknown mode: ${mode}`);
+  // ── Full Sermon Manuscript ─────────────────────────────────────────────────
+  if (depth === 'manuscript') {
+    const inputLabel = mode === 'verse' ? 'Text' : 'Theme';
+    return `You are an interfaith preaching scholar writing full sermon manuscripts.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "passage": "key scripture with full citation",
+      "title": "a sermon title — memorable, preachable",
+      "intro": "Opening paragraph, 100-120 words — hook the congregation with a story or image, not a thesis statement",
+      "body": "Main content — three movements, each 80-100 words, labelled I. II. III. Build tension across the three movements",
+      "application": "Concrete, specific, actionable — what should they actually do on Monday?",
+      "close": "Closing paragraph, 60-80 words — send them out with hope and without cheap comfort"
+    }
+  },
+  "sermonAngle": "the unifying thread a preacher could carry across all these traditions — one paragraph",
+  "commonGround": "what all traditions share at the heart of this theme — 2-3 sentences"
+}
+
+Rules:
+- Each manuscript must feel shaped by that tradition's actual preaching culture — use the PREACHING VOICE from the context notes above
+- Manuscript language: you are writing to be spoken aloud, not read silently
+- No jargon without explanation in the same breath
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  // ── Funeral Homily ────────────────────────────────────────────────────────
+  if (depth === 'funeral_homily') {
+    return `You are an interfaith pastoral care specialist writing funeral homilies.
+
+Theme/Text: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "scripture": "key passage with citation — genuinely comforting, not triumphalist",
+      "homily": "A 120-150 word funeral homily: tender, honest about grief, grounded in hope without minimising loss. Written in this tradition's pastoral voice."
+    }
+  },
+  "commonGround": "what all these traditions say at the edge of death — the shared pastoral wisdom — 2 sentences"
+}
+
+Rules:
+- Never toxic positivity — name the grief before the hope
+- Use each tradition's authentic language for loss, afterlife, and consolation
+- Warm, personal, pastoral — not a theological lecture
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  // ── Wedding Homily ────────────────────────────────────────────────────────
+  if (depth === 'wedding_homily') {
+    return `You are an interfaith pastoral care specialist writing wedding homilies.
+
+Theme/Text: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "scripture": "key passage with citation — something genuinely about love, covenant, or commitment",
+      "homily": "A 120-150 word wedding homily: joyful, grounded, real about the covenant being made. Written in this tradition's pastoral voice."
+    }
+  },
+  "commonGround": "what all these traditions celebrate and call sacred in committed partnership — 2 sentences"
+}
+
+Rules:
+- Joyful but not saccharine — this is a serious covenant
+- Use each tradition's authentic theology of covenant, love, and community
+- Inclusive — avoid gender-specific language unless theologically essential to the tradition
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  // ── Small Group Guide ─────────────────────────────────────────────────────
+  if (depth === 'small_group') {
+    const inputLabel = mode === 'verse' ? 'Text' : 'Topic';
+    return `You are an interfaith religious educator designing small group discussion guides.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "passage": "key scripture with citation",
+      "framing": "2 sentences framing how this tradition approaches the topic — accessible, not academic",
+      "questions": [
+        "Opening question — invites the group in, no wrong answers",
+        "Deeper question — surfaces the tension or complexity",
+        "Application question — what does this mean for how we live this week?"
+      ]
+    }
+  },
+  "commonGround": "a closing reflection helping the group see what all traditions share — 2-3 sentences"
+}
+
+Rules:
+- questions: exactly 3 per tradition — open-ended, not yes/no, accessible to non-experts
+- Questions build: opening → deeper → personal/application
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  // ── Personal Reflection ───────────────────────────────────────────────────
+  if (depth === 'personal_reflection') {
+    const inputLabel = mode === 'verse' ? 'Scripture' : 'Topic';
+    return `You are an interfaith spiritual director writing prompts for personal prayer and reflection.
+
+${inputLabel}: "${input}"
+Traditions: ${traditions.join(', ')}
+
+${ctxNote ? ctxNote + '\n\n' : ''}${tNote}
+
+Return valid JSON:
+{
+  "results": {
+    "Christianity": {
+      "scripture": "one key verse or teaching with full citation",
+      "reflection": "A 60-80 word personal reflection written in second person (\"you\" or \"we\"), in the warmth of this tradition's devotional voice — an invitation inward, not a lecture outward"
+    }
+  },
+  "commonGround": "one sentence: the universal invitation all these traditions extend on this topic"
+}
+
+Rules:
+- Short, intimate, personal — not a theological summary
+- Second person: \"As you sit with this...\" or \"Notice how...\"
+- Each reflection must feel distinctly shaped by that tradition's spirituality
+- Return ONLY the JSON object, no markdown fences`;
+  }
+
+  throw new Error(`Unknown mode/depth: ${mode}/${depth}`);
 }
 
 // ─── Response parser ──────────────────────────────────────────────────────────
@@ -350,7 +502,9 @@ export async function runResearch(mode, depth, input, traditions) {
   if (!Array.isArray(traditions) || !traditions.length)  throw new Error('at least one tradition is required');
 
   const validModes  = ['verse', 'topic', 'keyword', 'sermon_brief'];
-  const validDepths = ['quick', 'study', 'sermon_brief', 'devotional', 'preaching_outline', 'childrens_lesson'];
+  const validDepths = ['quick', 'study', 'sermon_brief', 'devotional', 'preaching_outline',
+                       'childrens_lesson', 'manuscript', 'funeral_homily', 'wedding_homily',
+                       'small_group', 'personal_reflection'];
   if (!validModes.includes(mode))   throw new Error(`invalid mode: ${mode}`);
   if (!validDepths.includes(depth)) throw new Error(`invalid depth: ${depth}`);
 
@@ -363,7 +517,8 @@ export async function runResearch(mode, depth, input, traditions) {
     return _cache.get(key);
   }
 
-  const haiku_formats = ['sermon_brief', 'devotional', 'childrens_lesson'];
+  const haiku_formats = ['sermon_brief', 'devotional', 'childrens_lesson',
+                         'funeral_homily', 'wedding_homily', 'personal_reflection'];
   const model     = haiku_formats.includes(effectiveDepth) ? MODEL_HAIKU : MODEL_SONNET;
   const maxTokens = MAX_TOKENS[effectiveDepth];
   const prompt    = buildPrompt(mode, effectiveDepth, input, traditions);
@@ -384,6 +539,9 @@ export async function runResearch(mode, depth, input, traditions) {
   const raw    = message.content[0]?.text || '';
   const parsed = parseResponse(raw);
 
+  const hasSermonAngle = mode === 'sermon_brief' ||
+    ['preaching_outline', 'manuscript'].includes(effectiveDepth);
+
   const result = {
     mode,
     depth:        effectiveDepth,
@@ -391,7 +549,7 @@ export async function runResearch(mode, depth, input, traditions) {
     traditions,
     results:      parsed.results      || {},
     commonGround: parsed.commonGround || '',
-    ...(mode === 'sermon_brief' && { sermonAngle: parsed.sermonAngle || '' }),
+    ...(hasSermonAngle && { sermonAngle: parsed.sermonAngle || '' }),
   };
 
   _cache.set(key, result);

@@ -133,37 +133,88 @@
 
     .featured-load-btn:hover { opacity: 0.65; }
 
-    /* ─── Mode tabs ─── */
-    .tab-bar {
-      display: flex;
-      gap: 0.35rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0;
-    }
+    /* ─── 3-step layout ─── */
+    .step { margin-bottom: 1.75rem; }
 
-    .tab-btn {
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 0.55rem 0.9rem;
-      margin-bottom: -1px;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
+    .step-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--text-muted);
+      margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
     }
-
-    .tab-btn:hover { color: var(--accent); }
-
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent2);
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; flex-shrink: 0;
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.6rem; font-weight: 700;
+      color: var(--accent); border: 1px solid var(--accent2); border-radius: 50%;
     }
+    .step-divider { height: 1px; background: var(--border); margin: 0 0 1.75rem; }
+
+    /* ─── Tradition pills ─── */
+    .trad-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+    .trad-pill {
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.5px; display: flex; align-items: center; gap: 0.3rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+      padding: 0.38rem 0.85rem; cursor: pointer; color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .trad-pill:hover { border-color: rgba(200,144,14,0.4); }
+    .trad-pill.active {
+      border-color: var(--trad-color, var(--accent2));
+      background: rgba(200,144,14,0.12);
+      box-shadow: 0 0 0 2px rgba(200,144,14,0.1);
+    }
+    .trad-sym { font-size: 0.9rem; line-height: 1; }
+
+    /* ─── Denomination sub-picker ─── */
+    .denom-subpicker { margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .denom-subpicker.hidden { display: none; }
+    /* .denom-pill styles are in styles.css */
+
+    /* ─── Custom tradition input ─── */
+    .tradition-other {
+      display: flex; align-items: center; gap: 0.65rem; margin-top: 0.75rem;
+    }
+    .tradition-other label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); white-space: nowrap;
+    }
+    #otherTradition {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.45rem 0.8rem;
+      color: var(--text); font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #otherTradition:focus {
+      border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(200,144,14,0.14);
+    }
+    #otherTradition::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+    /* ─── Format grid ─── */
+    .format-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem;
+    }
+    @media (max-width: 760px) { .format-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 761px) and (max-width: 940px) { .format-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .format-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.85rem 0.75rem 0.75rem; cursor: pointer; text-align: left;
+      display: flex; flex-direction: column; gap: 0.3rem;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+    .format-card:hover { border-color: rgba(200,144,14,0.4); background: var(--surface); }
+    .format-card.active {
+      border-color: var(--accent2); background: rgba(200,144,14,0.1);
+      box-shadow: 0 0 0 2px rgba(200,144,14,0.15);
+    }
+    .format-icon { font-size: 1.3rem; line-height: 1; margin-bottom: 0.15rem; }
+    .format-name {
+      font-family: 'Josefin Sans', sans-serif; font-size: 0.66rem; font-weight: 700;
+      letter-spacing: 0.5px; text-transform: uppercase; color: var(--text); line-height: 1.3;
+    }
+    .format-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.45; }
 
     /* ─── Research input ─── */
     .research-input-wrap { margin-bottom: 0.75rem; }
@@ -223,162 +274,6 @@
       border-color: var(--accent2);
       color: var(--accent);
       background: rgba(200, 144, 14, 0.08);
-    }
-
-    /* ─── Tradition selector ─── */
-    .tradition-select { margin-bottom: 1.5rem; }
-
-    .tradition-select > label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-    }
-
-    .tradition-all {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.6rem;
-      font-size: 0.9rem;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    .tradition-all input[type="radio"] {
-      accent-color: var(--accent);
-      width: 14px;
-      height: 14px;
-    }
-
-    .tradition-checkboxes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .tradition-checkboxes label {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.88rem;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-      color: var(--text);
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    .tradition-checkboxes label.enabled {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .tradition-checkboxes label.enabled:has(input:checked) {
-      border-color: var(--accent2);
-      background: rgba(200, 144, 14, 0.12);
-      box-shadow: 0 0 0 2px rgba(200, 144, 14, 0.15);
-    }
-
-    .tradition-checkboxes input[type="checkbox"] {
-      accent-color: var(--accent);
-      width: 14px;
-      height: 14px;
-    }
-
-    .tradition-other {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-    }
-
-    .tradition-other label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    #otherTradition {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.45rem 0.8rem;
-      color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    #otherTradition:focus {
-      border-color: var(--accent2);
-      box-shadow: 0 0 0 3px rgba(200, 144, 14, 0.14);
-    }
-
-    #otherTradition::placeholder { color: var(--text-muted); opacity: 0.6; }
-
-    /* ─── Format selector ─── */
-    .depth-select { margin-bottom: 1.75rem; }
-
-    .depth-select > label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--text-muted);
-      margin-bottom: 0.6rem;
-    }
-
-    .depth-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-    }
-
-    .depth-btn {
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.4rem 0.85rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color 0.18s, background 0.18s, color 0.18s;
-    }
-
-    .depth-btn:hover:not(:disabled) {
-      border-color: var(--accent2);
-      color: var(--accent);
-    }
-
-    .depth-btn.active {
-      border-color: var(--accent2);
-      background: rgba(200, 144, 14, 0.12);
-      color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(200, 144, 14, 0.15);
-    }
-
-    .depth-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
     }
 
     /* ─── New format content fields ─── */
@@ -452,26 +347,8 @@
       min-height: 2rem;
     }
 
-    /* ─── Denomination toggle in research — disabled until pick mode ─── */
-    #traditionCheckboxes .denom-toggle {
-      opacity: 0.2;
-      pointer-events: none;
-    }
-    #traditionCheckboxes.pick-mode .denom-toggle {
-      opacity: 0.5;
-      pointer-events: auto;
-    }
-    #traditionCheckboxes.pick-mode .denom-toggle:hover { opacity: 1; }
-
-    /* ─── Mobile (375px) ─── */
+    /* ─── Mobile ─── */
     @media (max-width: 600px) {
-      /* Tab bar scrolls horizontally instead of clipping */
-      .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-      .tab-bar::-webkit-scrollbar { display: none; }
-      .tab-btn { white-space: nowrap; padding: 0.55rem 0.7rem; }
-      /* Format buttons — pill style, let them wrap naturally on mobile */
-      .depth-btn { font-size: 0.62rem; padding: 0.35rem 0.65rem; }
-      /* Action row — stack Run + Inspire vertically */
       .action-row { flex-direction: column; }
       #runBtn, #inspireBtn { width: 100%; }
     }
@@ -504,21 +381,21 @@
             <span class="featured-mode-badge">Topic</span>
             <span class="featured-query">grief</span>
             <p class="featured-teaser">All 7 traditions treat grief as sacred — but they differ sharply on whether mourning should be public or private.</p>
-            <button class="featured-load-btn" data-featured-mode="topic" data-featured-query="grief">Load this research →</button>
+            <button class="featured-load-btn" data-featured-format="quick" data-featured-query="grief">Load this research →</button>
           </div>
 
           <div class="featured-card">
             <span class="featured-mode-badge">Verse</span>
             <span class="featured-query">John 3:16</span>
             <p class="featured-teaser">The most quoted verse in Christianity carries echoes in Jewish, Islamic, and even Buddhist thought.</p>
-            <button class="featured-load-btn" data-featured-mode="verse" data-featured-query="John 3:16">Load this research →</button>
+            <button class="featured-load-btn" data-featured-format="scripture_study" data-featured-query="John 3:16">Load this research →</button>
           </div>
 
           <div class="featured-card">
             <span class="featured-mode-badge">Sermon Brief</span>
             <span class="featured-query">redemption through suffering</span>
             <p class="featured-teaser">Every major tradition has a theology of suffering — and they converge more than you'd expect.</p>
-            <button class="featured-load-btn" data-featured-mode="sermon" data-featured-query="redemption through suffering">Load this research →</button>
+            <button class="featured-load-btn" data-featured-format="preaching_outline" data-featured-query="redemption through suffering">Load this research →</button>
           </div>
 
         </div>
@@ -527,117 +404,38 @@
       <!-- Controls -->
       <section class="controls">
 
-        <!-- Mode tabs -->
-        <div class="tab-bar" role="tablist">
-          <button class="tab-btn active" data-mode="verse"   data-placeholder="Enter a verse — e.g. John 3:16"                   role="tab" aria-selected="true">Verse</button>
-          <button class="tab-btn"        data-mode="topic"   data-placeholder="Enter a topic — e.g. forgiveness"                  role="tab" aria-selected="false">Topic</button>
-          <button class="tab-btn"        data-mode="keyword" data-placeholder="Enter a keyword — e.g. light"                      role="tab" aria-selected="false">Keyword</button>
-          <button class="tab-btn"        data-mode="sermon_brief"  data-placeholder="Enter a theme — e.g. redemption through suffering"  role="tab" aria-selected="false">Sermon Brief</button>
-        </div>
-
-        <!-- Research input -->
-        <div class="research-input-wrap">
-          <label for="researchInput">Your query</label>
-          <input type="text" id="researchInput" placeholder="Enter a verse — e.g. John 3:16" autocomplete="off" />
-        </div>
-
-        <!-- Suggestion chips -->
-        <div class="suggestion-chips" id="suggestionChips"></div>
-
-        <!-- Tradition selector -->
-        <div class="tradition-select">
-          <label>Traditions</label>
-
-          <label class="tradition-all">
-            <input type="radio" name="traditionScope" value="all" checked>
-            All Traditions
-          </label>
-
-          <label class="tradition-all">
-            <input type="radio" name="traditionScope" value="pick">
-            Pick traditions
-          </label>
-
-          <div class="tradition-checkboxes" id="traditionCheckboxes">
-            <!-- Christianity -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Christianity" data-effective-value="Christianity"> <span class="cb-sym" style="color:#7F77DD">✝</span> Christianity</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Christianity">All</button>
-                <button type="button" class="denom-pill" data-value="Roman Catholic">Catholic</button>
-                <button type="button" class="denom-pill" data-value="Eastern Orthodox">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Baptist">Baptist</button>
-                <button type="button" class="denom-pill" data-value="Methodist">Methodist</button>
-                <button type="button" class="denom-pill" data-value="Lutheran">Lutheran</button>
-                <button type="button" class="denom-pill" data-value="Pentecostal">Pentecostal</button>
-              </div>
-            </div>
-            <!-- Judaism -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Judaism" data-effective-value="Judaism"> <span class="cb-sym" style="color:#1D9E75">✡</span> Judaism</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Judaism">All</button>
-                <button type="button" class="denom-pill" data-value="Orthodox Judaism">Orthodox</button>
-                <button type="button" class="denom-pill" data-value="Conservative Judaism">Conservative</button>
-                <button type="button" class="denom-pill" data-value="Reform Judaism">Reform</button>
-              </div>
-            </div>
-            <!-- Islam -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Islam" data-effective-value="Islam"> <span class="cb-sym" style="color:#378ADD">☪</span> Islam</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Islam">All</button>
-                <button type="button" class="denom-pill" data-value="Sunni Islam">Sunni</button>
-                <button type="button" class="denom-pill" data-value="Shia Islam">Shia</button>
-                <button type="button" class="denom-pill" data-value="Sufi Islam">Sufi</button>
-              </div>
-            </div>
-            <!-- Buddhism -->
-            <div class="trad-group">
-              <div class="trad-label-row">
-                <label><input type="checkbox" value="Buddhism" data-effective-value="Buddhism"> <span class="cb-sym" style="color:#EF9F27">☸</span> Buddhism</label>
-                <button type="button" class="denom-toggle" title="Select denomination">▾</button>
-              </div>
-              <div class="denom-row">
-                <button type="button" class="denom-pill active" data-value="Buddhism">All</button>
-                <button type="button" class="denom-pill" data-value="Theravada Buddhism">Theravada</button>
-                <button type="button" class="denom-pill" data-value="Zen Buddhism">Zen</button>
-                <button type="button" class="denom-pill" data-value="Tibetan Buddhism">Tibetan</button>
-              </div>
-            </div>
-            <!-- No denomination picker for these -->
-            <label><input type="checkbox" value="Hinduism">     <span class="cb-sym" style="color:#D85A30">ॐ</span> Hinduism</label>
-            <label><input type="checkbox" value="Taoism">       <span class="cb-sym" style="color:#5DCAA5">☯</span> Taoism</label>
-            <label><input type="checkbox" value="Sikhism">      <span class="cb-sym" style="color:#D4537E">☬</span> Sikhism</label>
-            <label title="The Church of Jesus Christ of Latter-day Saints"><input type="checkbox" value="Latter-day Saints"> <span class="cb-sym" style="color:#1B3A6B">✦</span> Latter-day Saints</label>
+        <!-- Step 1: Your tradition -->
+        <div class="step">
+          <div class="step-label"><span class="step-num">1</span> Your tradition</div>
+          <div class="trad-pills" id="tradPills">
+            <!-- populated by research-ui.js -->
           </div>
-
+          <div class="denom-subpicker hidden" id="denomSubpicker"></div>
           <div class="tradition-other">
-            <label for="otherTradition">Your tradition</label>
-            <input type="text" id="otherTradition" placeholder="Zoroastrianism, Bahá'í, Jainism, Rastafari, Yazidi…" />
+            <label for="otherTradition">Not listed?</label>
+            <input type="text" id="otherTradition" placeholder="Zoroastrianism, Bahá'í, Jainism, Rastafari…" />
           </div>
-          <p style="margin-top:0.45rem;font-size:0.72rem;color:var(--text-muted);font-family:'Josefin Sans',sans-serif;letter-spacing:0.03em;">Millions of people belong to traditions not listed above. We research them with the same depth and respect.</p>
         </div>
 
-        <!-- Format selector -->
-        <div class="depth-select">
-          <label>Format</label>
-          <div class="depth-buttons">
-            <button class="depth-btn active" data-depth="quick"             title="Fast one-sentence answers per tradition">Quick Answer</button>
-            <button class="depth-btn"        data-depth="study"             title="Full interpretation + historical context">Study Notes</button>
-            <button class="depth-btn"        data-depth="devotional"        title="Short personal reflection for morning devotions">Devotional</button>
-            <button class="depth-btn"        data-depth="preaching_outline" title="I/II/III sermon outline with a unifying preaching angle">Preaching Outline</button>
-            <button class="depth-btn"        data-depth="childrens_lesson"  title="Story-based lesson for ages 8-12">Children's Lesson</button>
+        <div class="step-divider"></div>
+
+        <!-- Step 2: What do you need? -->
+        <div class="step">
+          <div class="step-label"><span class="step-num">2</span> What do you need?</div>
+          <div class="format-grid" id="formatGrid">
+            <!-- populated by research-ui.js -->
           </div>
+        </div>
+
+        <div class="step-divider"></div>
+
+        <!-- Step 3: Your topic or text -->
+        <div class="step">
+          <div class="step-label"><span class="step-num">3</span> Your topic or text</div>
+          <div class="research-input-wrap">
+            <input type="text" id="researchInput" placeholder="Enter a topic, verse, or theme" autocomplete="off" />
+          </div>
+          <div class="suggestion-chips" id="suggestionChips"></div>
         </div>
 
         <!-- Action buttons -->
