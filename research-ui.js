@@ -324,6 +324,15 @@
         padding: 0.22rem 0.55rem; cursor: pointer; transition: color 0.15s, border-color 0.15s;
       }
       .card-copy-btn:hover { color: var(--accent); border-color: var(--accent2); }
+
+      .card-listen-btn {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.64rem; font-weight: 600;
+        letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);
+        background: none; border: 1px solid var(--border); border-radius: 4px;
+        padding: 0.22rem 0.55rem; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+      }
+      .card-listen-btn:hover { color: var(--accent); border-color: var(--accent2); }
+      .card-listen-btn:has(◼) { color: var(--accent); border-color: var(--accent2); }
       .card-chevron {
         color: var(--text-muted); font-size: 0.8rem; transition: transform 0.2s; line-height: 1;
       }
@@ -644,6 +653,7 @@
   // ─── Loading state ─────────────────────────────────────────────────────────
 
   function showLoading() {
+    ttsStop(); // stop any playing audio before clearing results
     const trad = currentDenom || currentTradition;
     const label = trad ? trad : 'traditions';
     resultsSection.innerHTML = `
@@ -762,6 +772,7 @@
       </span>
       <span class="card-actions">
         <button class="card-copy-btn" type="button">Copy</button>
+        ${hasTTS ? '<button class="card-listen-btn" type="button">▶ Listen</button>' : ''}
         <span class="card-chevron" aria-hidden="true">▾</span>
       </span>`;
 
@@ -775,6 +786,13 @@
         setTimeout(() => { btn.textContent = orig; }, 1600);
       });
     });
+
+    if (hasTTS) {
+      header.querySelector('.card-listen-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        ttsSpeak(buildSpeakText(tradition, content), e.currentTarget);
+      });
+    }
 
     header.addEventListener('click', () => card.classList.toggle('collapsed'));
 
@@ -919,6 +937,69 @@
     if (c.framing)        parts.push('\n\n' + c.framing);
     if (Array.isArray(c.questions)) parts.push('\n' + c.questions.join('\n'));
     return parts.join('').trim();
+  }
+
+  // ─── TTS ──────────────────────────────────────────────────────────────────
+
+  const hasTTS = 'speechSynthesis' in window;
+  let _ttsBtn  = null;   // currently active listen button
+  let _ttsTimer = null;  // Chrome keepalive timer
+
+  function ttsStop() {
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    clearInterval(_ttsTimer);
+    _ttsTimer = null;
+    if (_ttsBtn) { _ttsBtn.textContent = '▶ Listen'; _ttsBtn = null; }
+  }
+
+  function ttsSpeak(text, btn) {
+    // Toggle off if same button
+    if (_ttsBtn === btn) { ttsStop(); return; }
+    // Stop previous
+    ttsStop();
+
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.rate   = 0.93;
+    utt.pitch  = 1;
+    utt.onend  = () => { clearInterval(_ttsTimer); _ttsTimer = null; if (_ttsBtn === btn) { btn.textContent = '▶ Listen'; _ttsBtn = null; } };
+    utt.onerror = utt.onend;
+
+    btn.textContent = '◼ Stop';
+    _ttsBtn = btn;
+    window.speechSynthesis.speak(utt);
+
+    // Chrome bug: synthesis pauses on long text after ~15s
+    _ttsTimer = setInterval(() => {
+      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 14000);
+  }
+
+  function buildSpeakText(tradition, content) {
+    const p = [`${tradition}.`];
+    if (content.passage)       p.push(content.passage);
+    if (content.scripture)     p.push(content.scripture);
+    if (content.interpretation) p.push(content.interpretation);
+    if (content.context)       p.push(content.context);
+    if (content.reflection)    p.push(content.reflection);
+    if (content.title)         p.push(content.title + '.');
+    if (content.intro)         p.push(content.intro);
+    if (content.body)          p.push(content.body);
+    if (content.application)   p.push('Application. ' + content.application);
+    if (content.close)         p.push(content.close);
+    if (content.homily)        p.push(content.homily);
+    if (content.main_point)    p.push('Main point. ' + content.main_point);
+    if (Array.isArray(content.sub_points))
+      content.sub_points.forEach(pt => p.push(pt));
+    if (content.framing)       p.push(content.framing);
+    if (Array.isArray(content.questions))
+      content.questions.forEach((q, i) => p.push(`Question ${i + 1}. ${q}`));
+    if (content.story_hook)    p.push(content.story_hook);
+    if (content.teaching)      p.push(content.teaching);
+    if (content.discussion_question) p.push('Discussion question. ' + content.discussion_question);
+    return p.join(' ');
   }
 
   // ─── Share bar ─────────────────────────────────────────────────────────────
