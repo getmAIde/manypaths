@@ -83,18 +83,29 @@ Each format = different prompt template. Same denomination profile, different sh
 - Dynamic OG image per compare result
 
 ### Research (research.html + research-engine.js)
-4 modes × 2 depths + Sermon Brief:
+**3-step UI:** (1) Your tradition pill → (2) Format card → (3) Your topic or text
 
-| Mode | Quick | Study | Sermon Brief |
-|------|-------|-------|-------------|
-| **verse** | One-line per tradition | Full interpretation + context | — |
-| **topic** | Core teaching per tradition | Deep dive + cross-tradition | — |
-| **keyword** | Theological significance | Root meaning + evolution | — |
-| **sermon_brief** | — | — | Passage + angle + commonGround |
+**10 output formats (all live):**
+| Format | Depth key | Model | Notes |
+|--------|-----------|-------|-------|
+| Quick Answer | `quick` | Haiku | One sentence per tradition |
+| Scripture Study | `study` | Sonnet | Full interpretation + context |
+| Devotional | `devotional` | Haiku | Personal reflection |
+| Preaching Outline | `preaching_outline` | Sonnet | I/II/III + sermon angle |
+| Sermon Manuscript | `manuscript` | Sonnet | Full intro/body/application/close |
+| Children's Lesson | `childrens_lesson` | Haiku | Ages 8-12 |
+| Funeral Homily | `funeral_homily` | Haiku | Pastoral, grief-honest |
+| Wedding Homily | `wedding_homily` | Haiku | Covenant theology per tradition |
+| Small Group Guide | `small_group` | Sonnet | 3-question arc per tradition |
+| Personal Reflection | `personal_reflection` | Haiku | 2nd-person devotional prompts |
 
-All modes return JSON → rendered by `research-ui.js`.
+**Denomination system:** tradition-context.js has PREACHING VOICE sections for all 8 base traditions + 14 denominations. Each denomination gets voice, structure, lectionary, authorities, and avoidance patterns.
 
-**Current gap:** Sermon Brief has no denomination profile — generates generic angle. Denomination profile system is the next major sprint.
+**Denomination pickers in Research:** Christianity (7), Judaism (4), Islam (4), Buddhism (4).
+
+**Research history:** last 10 queries in localStorage, shown as pills above Run. Click to restore.
+
+**Compare → Research funnel:** each Compare result card shows "Go deeper in {tradition} →" after render, linking to `/research?tradition={t}&q={topic}`.
 
 ---
 
@@ -129,8 +140,8 @@ MODEL_SONNET = 'claude-sonnet-4-20250514'   // compare, topic study, verse study
 MODEL_HAIKU  = 'claude-haiku-4-5-20251001'  // quick modes, sermon_brief
 ```
 
-### TRADITION_CONTEXT in research-engine.js
-The existing per-tradition context injection mechanism. Currently only LDS has an entry. The denomination profile system expands this to all traditions.
+### TRADITION_CONTEXT in tradition-context.js
+Shared module imported by research-engine.js. All 8 base traditions + 14 denominations have entries. Each entry has theological identity + PREACHING/TEACHING/KHUTBA/DHAMMA TALK VOICE section (tone, structure, lectionary, preferred authorities, avoidance patterns).
 
 ### vercel.json Rules — Do Not Break
 - Use `builds` + `routes` — never mix with `functions` (they conflict)
@@ -178,36 +189,34 @@ The existing per-tradition context injection mechanism. Currently only LDS has a
 
 ## Next Sprint Priorities
 
-### 1. Denomination Profile System (biggest unlock)
-- Build `DENOMINATION_PROFILES` map in `research-engine.js`
-- Start with 20-30 profiles across major traditions
-- Wire into `buildPrompt()` — inject voice/structure/sources when denomination selected
-- UI: denomination picker in Research after tradition selection
-- This makes Sermon Brief actually useful
-
-### 2. Format Picker UI
-- Format card grid in Research (all 9 formats, pick one)
-- Each = distinct prompt template in `buildPrompt()`
-
-### 3. More Traditions + Denominations
-- Orthodox Christianity (Greek, Russian, Coptic, Ethiopian)
-- Islamic schools (Sunni/Shia/Sufi)
-- Buddhist denominations (Zen, Theravada, Tibetan)
-- Add to both Compare UI and Research engine
-
-### 4. OG / SEO Fix (index.html)
-- Missing `og:description` and `twitter:card` on index.html
-- research.html already has both — copy pattern
-- Every share of manypaths.one currently shows a dead link preview
-
-### 5. Stripe + Auth
-- After LLC + EIN + Mercury live
+### 1. Stripe + Auth (biggest unlock)
+- Gate: LLC + EIN + Mercury must be live first
 - Email magic link for auth
 - Stripe Checkout subscription for Research paid tier
+- Replace localStorage paywall with server-side session check
 
-### 6. CSP
-- Move inline onclick handlers to addEventListener in app.js / research-ui.js
-- Then enable strict CSP
+### 2. More Denominations
+- Anglican/Episcopal, Presbyterian, SDA, Quaker, Mennonite
+- Reconstructionist + Renewal Judaism
+- Hanafi/Maliki/Shafi'i/Hanbali schools within Sunni Islam
+- Add to tradition-context.js + Research denomination picker
+
+### 3. CSP Hardening
+- Move remaining inline event handlers to addEventListener
+- Enable strict Content Security Policy
+- Currently blocked by `historyRender()` inline onmouseover in app.js
+
+### 4. Save / Export (Research)
+- Full session save (beyond recent history pills)
+- Named saves: "Advent sermon - Methodist - 2026"
+- Export improvements: PDF, DOCX (pastors live in Word)
+
+### 5. Share on Research results
+- Already ships (share bar). Need OG image generation per Research result.
+
+### 6. More Traditions
+- Bahá'í, Jainism, Zoroastrianism, Shinto — add to both Compare + Research
+- Indigenous traditions (careful framing required)
 
 ---
 
@@ -255,8 +264,7 @@ All share the same verb: *make it accessible.*
 ---
 
 ## Known Issues
-- index.html missing `og:description` + `twitter:card` (priority fix)
-- No CSP (blocked by inline onclick handlers)
-- Paywall is localStorage only — bypassable
-- Sermon Brief has no denomination profile (generic output) — denomination system is next sprint
-- `TRADITION_CONTEXT` only has LDS — all traditions need profiles
+- No CSP (blocked by inline `onmouseover` in `historyRender()` + tip jar dismiss — fix = move to addEventListener)
+- Paywall is localStorage only — bypassable until Stripe
+- `DENOMINATION_PARENT` removed from app.js but still referenced at line ~132 in `historyRender()` — safe due to optional chaining (`?.`) but technically dead code
+- Research history `selectTradition()` restores parent but denomination sub-picker may not auto-select if denomination pills haven't rendered yet — edge case, acceptable

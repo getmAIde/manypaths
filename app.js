@@ -129,7 +129,7 @@ function historyRender() {
     <div style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;font-family:'Josefin Sans',sans-serif;">Recent</div>
     <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
       ${hist.map((h, i) => {
-        const syms = h.religions.map(r => TRADITION_SYMBOL[r]?.sym || TRADITION_SYMBOL[DENOMINATION_PARENT?.[r]]?.sym || '✦').join('');
+        const syms = h.religions.map(r => TRADITION_SYMBOL[r]?.sym || '✦').join('');
         return `<button
           onclick="historyLoad(${i})"
           style="font-family:'Josefin Sans',sans-serif;font-size:0.68rem;font-weight:600;letter-spacing:0.3px;
