@@ -9,6 +9,8 @@ import { runResearch } from "./research-engine.js";
 import { generateOG } from "./og-generator.js";
 import { resolvedModels } from "./models.js";
 import { TRADITION_CONTEXT } from "./tradition-context.js";
+import { verifyToken } from "./auth.js";
+import { createCheckout, verifyCheckout, handleWebhook } from "./stripe-handlers.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
@@ -227,7 +229,9 @@ Rules:
 // ─── Notes ────────────────────────────────────────────────────────────────────
 // SSL/HTTPS: Handled by Vercel's edge — this server speaks plain HTTP internally.
 // Markdown export: Client-side only (research-ui.js Blob download) — no server involvement.
-// Supabase / Stripe: Not wired yet — all data is stateless / localStorage only.
+// Stripe: Wired. Activation: set RESEARCH_PAYWALL_ENABLED=true in Vercel env vars.
+//         Required env vars: STRIPE_SECRET_KEY, STRIPE_PRICE_ID,
+//                            STRIPE_WEBHOOK_SECRET, STRIPE_JWT_SECRET
 // ─────────────────────────────────────────────────────────────────────────────
 
 const server = http.createServer(async (req, res) => {
@@ -240,8 +244,41 @@ const server = http.createServer(async (req, res) => {
     return handleResearch(req, res);
   }
 
+  // ─── Stripe: checkout, verify, webhook ───────────────────────────────────
+  if (req.method === "POST" && pathname === "/api/checkout") {
+    return createCheckout(res);
+  }
+  if (req.method === "POST" && pathname === "/api/checkout/verify") {
+    return verifyCheckout(req, res);
+  }
+  if (req.method === "POST" && pathname === "/api/webhook") {
+    return handleWebhook(req, res);
+  }
+
   // Research page API — used by research-ui.js
   if (req.method === "POST" && pathname === "/api/run-research") {
+    // ─── Paywall gate (server-side) ─────────────────────────────────────────
+    // Activate by setting RESEARCH_PAYWALL_ENABLED=true in Vercel env.
+    // While false, all research requests pass through regardless of token.
+    const paywallEnabled = process.env.RESEARCH_PAYWALL_ENABLED === 'true';
+    if (paywallEnabled) {
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+      const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
+      if (!token || !jwtSecret) {
+        res.writeHead(402, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'subscription_required' }));
+      }
+      try {
+        verifyToken(token, jwtSecret);
+      } catch (tokenErr) {
+        const code = tokenErr.message === 'expired' ? 401 : 403;
+        res.writeHead(code, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: tokenErr.message === 'expired' ? 'token_expired' : 'token_invalid' }));
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     let body = "";
     req.on("data", c => (body += c));
     req.on("end", async () => {

@@ -249,6 +249,55 @@
 
   const PAYWALL_DISMISS_KEY = 'mp_paywall_dismissed';
 
+  // ─── Subscription token (Stripe) ──────────────────────────────────────────
+
+  const SESSION_KEY = 'mp_session_token';
+
+  function getStoredToken() {
+    return localStorage.getItem(SESSION_KEY) || '';
+  }
+
+  function storeToken(token) {
+    localStorage.setItem(SESSION_KEY, token);
+  }
+
+  // Check for ?session_id= in URL (Stripe success redirect) and verify it
+  async function handleStripeReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (!sessionId) return;
+
+    // Clean URL immediately
+    params.delete('session_id');
+    const newSearch = params.toString();
+    window.history.replaceState({}, '', '/research' + (newSearch ? '?' + newSearch : ''));
+
+    try {
+      const res = await fetch('/api/checkout/verify', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ sessionId }),
+      });
+      if (res.ok) {
+        const { token } = await res.json();
+        if (token) {
+          storeToken(token);
+          // Brief confirmation
+          const notice = document.createElement('div');
+          notice.style.cssText = 'position:fixed;top:1rem;right:1rem;background:#1a1a18;color:#f5c842;padding:0.75rem 1.2rem;border-radius:6px;font-size:0.85rem;z-index:9999;';
+          notice.textContent = 'Research Pro unlocked.';
+          document.body.appendChild(notice);
+          setTimeout(() => notice.remove(), 3000);
+        }
+      }
+    } catch (e) {
+      console.warn('[mp] stripe return verification failed:', e.message);
+    }
+  }
+
+  // Kick off token check on load (non-blocking)
+  handleStripeReturn();
+
   function limitConfig(mode, depth) {
     if (mode === 'sermon_brief' || depth === 'sermon_brief') return FREE_LIMITS.sermon_brief;
     if (depth === 'manuscript')                              return FREE_LIMITS.sermon_brief;
@@ -660,6 +709,62 @@
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // ─── Stripe paywall (server-enforced) ────────────────────────────────────
+  // Shown when the server returns 402 (paywall enabled) or 401 (token expired).
+
+  function showStripePaywall(mode, depth, isExpired = false) {
+    document.getElementById('researchStripePaywall')?.remove();
+
+    const isSermon = mode === 'sermon_brief' || depth === 'sermon_brief' || depth === 'manuscript';
+    const msg = isExpired
+      ? 'Your Research Pro access has expired.'
+      : 'Research Pro is required for this format.';
+
+    const banner = document.createElement('div');
+    banner.className = 'paywall-banner';
+    banner.id = 'researchStripePaywall';
+    banner.innerHTML = `
+      <p class="paywall-msg">
+        <strong>${msg}</strong><br>
+        Unlock unlimited ${isSermon ? 'sermon manuscripts and study tools' : 'deep research'} for $20/month.
+        7-day free trial — cancel anytime.
+      </p>
+      <div class="paywall-actions">
+        <button class="paywall-cta" id="stripeCheckoutBtn" type="button">
+          Start free trial →
+        </button>
+        <button class="paywall-dismiss" type="button">Maybe later</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">
+        Secure checkout via Stripe. Manage or cancel anytime.
+      </p>`;
+
+    banner.querySelector('#stripeCheckoutBtn').addEventListener('click', async () => {
+      const btn = banner.querySelector('#stripeCheckoutBtn');
+      btn.disabled = true;
+      btn.textContent = 'Redirecting…';
+      try {
+        const r = await fetch('/api/checkout', { method: 'POST' });
+        const { url, error } = await r.json();
+        if (url) { window.location.href = url; }
+        else { btn.textContent = error || 'Checkout unavailable'; btn.disabled = false; }
+      } catch (e) {
+        btn.textContent = 'Error — try again'; btn.disabled = false;
+      }
+    });
+
+    banner.querySelector('.paywall-dismiss').addEventListener('click', () => {
+      banner.remove();
+      runBtn.disabled = false;
+      resultsSection.innerHTML = '';
+    });
+
+    resultsSection.innerHTML = '';
+    resultsSection.appendChild(banner);
+    runBtn.disabled = true;
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   // ─── Featured load ─────────────────────────────────────────────────────────
 
   window.loadFeatured = function (format, query) {
@@ -684,11 +789,26 @@
   // ─── API call ──────────────────────────────────────────────────────────────
 
   async function callAPI(mode, depth, query, traditions) {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = getStoredToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch('/api/run-research', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body:    JSON.stringify({ mode, depth, input: query, traditions }),
     });
+
+    // Server-side paywall responses
+    if (res.status === 402) {
+      throw Object.assign(new Error('subscription_required'), { isPaywall: true });
+    }
+    if (res.status === 401) {
+      // Token expired — clear it and prompt re-subscribe
+      localStorage.removeItem(SESSION_KEY);
+      throw Object.assign(new Error('token_expired'), { isPaywall: true });
+    }
+
     if (!res.ok) throw new Error(`Server error ${res.status}: ${await res.text()}`);
     return res.json();
   }
@@ -722,8 +842,12 @@
       researchHistorySave(currentFormat, currentTradition, currentDenom, query);
       renderResults(data);
     } catch (err) {
-      resultsSection.innerHTML = `<div class="research-error">${escHtml(err.message)}</div>`;
-      console.error('[research-ui]', err);
+      if (err.isPaywall) {
+        showStripePaywall(mode, depth, err.message === 'token_expired');
+      } else {
+        resultsSection.innerHTML = `<div class="research-error">${escHtml(err.message)}</div>`;
+        console.error('[research-ui]', err);
+      }
     } finally {
       runBtn.disabled = false;
     }
