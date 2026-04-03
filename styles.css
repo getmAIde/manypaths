@@ -611,6 +611,57 @@ footer a:hover { text-decoration: underline; }
   #compareBtn { font-size: 1rem; padding: 0.85rem 2rem; width: 100%; }
 }
 
+/* ─── The Agency cross-promo banner ─── */
+.agency-banner-mp {
+  display: block;
+  background: #1a1a18;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 24px auto;
+  max-width: 720px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.agency-banner-mp:hover { opacity: 0.88; }
+.agency-banner-mp__eyebrow {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-family: 'Josefin Sans', sans-serif;
+}
+.agency-banner-mp__body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.agency-banner-mp__title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #f5c842;
+  font-family: 'Josefin Sans', sans-serif;
+}
+.agency-banner-mp__divider { color: #555; font-size: 13px; }
+.agency-banner-mp__tagline {
+  font-size: 12px;
+  color: #ccc;
+  font-family: 'Josefin Sans', sans-serif;
+}
+.agency-banner-mp__cta {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f5c842;
+  margin-top: 6px;
+  font-family: 'Josefin Sans', sans-serif;
+  letter-spacing: 0.3px;
+}
+
 /* ─── RTL support (Arabic, Hebrew) ─── */
 [dir="rtl"] .checkboxes { flex-direction: row-reverse; }
 [dir="rtl"] .column-card .content,

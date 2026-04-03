@@ -14,7 +14,7 @@ import { createCheckout, verifyCheckout, handleWebhook } from "./stripe-handlers
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3100;
 
 const MIME = {
   ".html": "text/html",
