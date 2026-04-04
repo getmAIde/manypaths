@@ -90,6 +90,15 @@
             <input type="text" id="topic" placeholder="e.g. forgiveness, prayer, afterlife..." />
             <button type="button" class="surprise-btn">Inspire me →</button>
           </div>
+          <div class="try-chips">
+            <span class="try-label">Try:</span>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Forgiveness">Forgiveness</button>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Prayer">Prayer</button>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Afterlife">Afterlife</button>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Suffering">Suffering</button>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Love">Love</button>
+            <button class="try-chip" type="button" onclick="document.getElementById('topic').value=this.dataset.topic" data-topic="Justice">Justice</button>
+          </div>
         </div>
 
         <div class="religion-select">
@@ -130,15 +139,15 @@
       </section>
     </main>
 
-    <a href="https://www.youtube.com/@theagencyllm" target="_blank" rel="noopener noreferrer" class="agency-banner-mp" aria-label="Watch The Agency — an LLM Industries production">
+    <div class="agency-banner-mp" aria-label="The A-i-gency — an LLM Industries production">
       <span class="agency-banner-mp__eyebrow">FROM THE MAKERS OF MANY PATHS</span>
       <span class="agency-banner-mp__body">
-        <span class="agency-banner-mp__title">THE AGENCY</span>
+        <span class="agency-banner-mp__title">THE A<sub style="font-size:0.6em;font-weight:800;letter-spacing:0">i</sub>GENCY</span>
         <span class="agency-banner-mp__divider"> — </span>
         <span class="agency-banner-mp__tagline">AI working for people the system forgot</span>
       </span>
-      <span class="agency-banner-mp__cta">Watch now ↗</span>
-    </a>
+      <span class="agency-banner-mp__cta">Coming soon — we're working as fast as we can.</span>
+    </div>
 
     <footer>
       <div class="beta-footer-note">Compare is always free · Research is live — try free during beta</div>
