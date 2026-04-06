@@ -474,6 +474,12 @@ const server = http.createServer(async (req, res) => {
     return serveStatic(res, path.join(__dirname, "research.html"));
   }
 
+  // /upgrade → redirect to research page with upgrade flag
+  if (pathname === "/upgrade") {
+    res.writeHead(302, { Location: "/research?upgrade=1" });
+    return res.end();
+  }
+
   // Favicon and touch icons → logo SVGs
   if (pathname === "/favicon.ico") {
     return serveStatic(res, path.join(__dirname, "logo/icon-32.svg"));

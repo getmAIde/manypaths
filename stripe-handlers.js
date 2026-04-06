@@ -27,8 +27,8 @@ function stripeClient() {
 export async function createCheckout(res) {
   try {
     const stripe    = stripeClient();
-    const priceId   = process.env.STRIPE_PRICE_ID;
-    if (!priceId) throw new Error('STRIPE_PRICE_ID not set');
+    const priceId   = process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_PRICE_ID;
+    if (!priceId) throw new Error('STRIPE_PRICE_ID_MONTHLY not set');
 
     const session = await stripe.checkout.sessions.create({
       mode:                 'subscription',

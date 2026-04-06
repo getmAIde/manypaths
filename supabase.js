@@ -6,7 +6,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL  = process.env.SUPABASE_URL  || 'https://cvniwzqfiauwvslxjjbm.supabase.co';
-const SUPABASE_KEY  = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2bml3enFmaWF1d3ZzbHhqamJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NTE2NDIsImV4cCI6MjA5MTAyNzY0Mn0.Ed6C-PWJlHwqOfXou3tRL1FVh0loPNu89Vun9epD1w4';
+// Use service role key server-side (bypasses RLS — all access is server-mediated).
+// Falls back to anon key for local dev without service role set.
+const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -114,20 +116,25 @@ export async function getSave(userId, saveId) {
     .single();
 
   if (error) throw new Error(error.message);
+  if (data && typeof data.output === 'string') {
+    try { data.output = JSON.parse(data.output); } catch { /* leave as string */ }
+  }
   return data;
 }
 
 export async function createSave(userId, payload) {
   const { title, tradition, denomination, topic, format, depth, language, output } = payload;
+  const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
   const { data, error } = await supabase
     .from('research_saves')
-    .insert({ user_id: userId, title, tradition, denomination, topic, format, depth, language: language || 'en', output })
+    .insert({ user_id: userId, title, tradition, denomination, topic, format, depth, language: language || 'en', output: outputStr })
     .select()
     .single();
 
   if (error) throw new Error(error.message);
   return data;
 }
+
 
 export async function deleteSave(userId, saveId) {
   const { error } = await supabase

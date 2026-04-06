@@ -319,7 +319,7 @@
     if (_usageCache?.plan === 'paid') injectMySavesBtn();
   });
 
-  function limitConfig() { return null; } // legacy stub — server enforces limits now
+  function limitConfig() { return { max: FREE_LIMIT, noun: "Research sessions" }; }
   function isOverLimit() { return false; } // server returns 402 when limit hit
 
   function isPaywallDismissed() { return !!sessionStorage.getItem(PAYWALL_DISMISS_KEY); }
