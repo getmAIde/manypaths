@@ -237,15 +237,31 @@
     return (Date.now() - new Date(added).getTime()) < 30 * 24 * 60 * 60 * 1000;
   }
 
-  // ─── Free tier limits ──────────────────────────────────────────────────────
+  // ─── Free tier limits (server-enforced, 3/month across all Research) ────────
 
-  const FREE_LIMITS = {
-    study:        { key: 'mp_study_count',   max: 10, noun: 'Study lookups'   },
-    sermon_brief: { key: 'mp_sermon_count',  max: 3,  noun: 'Sermon manuscripts' },
-  };
+  const FREE_LIMIT = 3;
+  let _usageCache = null; // { plan, remaining, count } — fetched once on load
 
-  function getCount(key)  { return parseInt(localStorage.getItem(key) || '0', 10); }
-  function incCount(key)  { localStorage.setItem(key, getCount(key) + 1); }
+  async function fetchUsage() {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = getStoredToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const fp = await getFingerprint();
+      headers['x-fingerprint'] = fp;
+      const res = await fetch('/api/usage', { headers });
+      if (res.ok) _usageCache = await res.json();
+    } catch (e) {
+      console.warn('[mp] usage fetch failed:', e.message);
+    }
+  }
+
+  async function getFingerprint() {
+    // Simple stable fingerprint from browser signals
+    const raw = [navigator.userAgent, navigator.language, screen.width, screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone].join('|');
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
 
   const PAYWALL_DISMISS_KEY = 'mp_paywall_dismissed';
 
@@ -297,18 +313,14 @@
 
   // Kick off token check on load (non-blocking)
   handleStripeReturn();
+  // Fetch usage from server (non-blocking — updates indicator + My Saves button when ready)
+  fetchUsage().then(() => {
+    updateUsageIndicator();
+    if (_usageCache?.plan === 'paid') injectMySavesBtn();
+  });
 
-  function limitConfig(mode, depth) {
-    if (mode === 'sermon_brief' || depth === 'sermon_brief') return FREE_LIMITS.sermon_brief;
-    if (depth === 'manuscript')                              return FREE_LIMITS.sermon_brief;
-    if (['study', 'preaching_outline', 'small_group'].includes(depth)) return FREE_LIMITS.study;
-    return null;
-  }
-
-  function isOverLimit(mode, depth) {
-    const cfg = limitConfig(mode, depth);
-    return cfg ? getCount(cfg.key) >= cfg.max : false;
-  }
+  function limitConfig() { return null; } // legacy stub — server enforces limits now
+  function isOverLimit() { return false; } // server returns 402 when limit hit
 
   function isPaywallDismissed() { return !!sessionStorage.getItem(PAYWALL_DISMISS_KEY); }
 
@@ -502,6 +514,96 @@
         border: 1px solid #c8900e; border-radius: 3px; padding: 1px 4px;
         line-height: 1.3; white-space: nowrap;
       }
+
+      /* Saves panel */
+      .saves-panel {
+        margin-bottom: 1.5rem; animation: fadeIn 0.3s ease;
+      }
+      .saves-panel-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 0.75rem;
+      }
+      .saves-panel-title {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
+      }
+      .saves-panel-close {
+        font-family: 'EB Garamond', Georgia, serif; font-size: 0.85rem; font-style: italic;
+        color: var(--text-muted); background: none; border: none; cursor: pointer;
+        padding: 0.2rem 0.4rem; transition: color 0.15s;
+      }
+      .saves-panel-close:hover { color: var(--text); }
+      .saves-list { display: flex; flex-direction: column; gap: 0.6rem; }
+      .save-card {
+        background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+        padding: 0.85rem 1rem; display: flex; align-items: flex-start;
+        justify-content: space-between; gap: 0.75rem; animation: fadeIn 0.25s ease;
+      }
+      .save-card-info { flex: 1; min-width: 0; }
+      .save-card-title {
+        font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600;
+        color: var(--accent); white-space: nowrap; overflow: hidden;
+        text-overflow: ellipsis; margin-bottom: 0.25rem;
+      }
+      .save-card-meta {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; font-weight: 600;
+        letter-spacing: 0.3px; text-transform: uppercase; color: var(--text-muted);
+      }
+      .save-card-actions { display: flex; gap: 0.4rem; flex-shrink: 0; align-items: center; }
+      .save-load-btn, .save-delete-btn {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.63rem; font-weight: 600;
+        letter-spacing: 0.8px; text-transform: uppercase; background: none;
+        border: 1px solid var(--border); border-radius: 4px;
+        padding: 0.22rem 0.55rem; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+        color: var(--text-muted);
+      }
+      .save-load-btn:hover { color: var(--accent); border-color: var(--accent2); }
+      .save-delete-btn:hover { color: #a03020; border-color: rgba(160,48,32,0.4); }
+      .saves-empty {
+        text-align: center; padding: 1.5rem; color: var(--text-muted);
+        font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 0.95rem;
+      }
+      .saves-panel-divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+      .save-result-btn {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; font-weight: 600;
+        letter-spacing: 1px; text-transform: uppercase; color: var(--accent);
+        background: none; border: 1px solid var(--accent2); border-radius: 20px;
+        padding: 0.32rem 0.85rem; cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        margin-top: 0.35rem;
+      }
+      .save-result-btn:hover { background: rgba(200,144,14,0.1); }
+      .save-result-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .my-saves-btn {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; font-weight: 600;
+        letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted);
+        background: none; border: 1px solid var(--border); border-radius: 20px;
+        padding: 0.28rem 0.75rem; cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+      }
+      .my-saves-btn:hover { color: var(--accent); border-color: var(--accent2); }
+
+      /* Voice picker */
+      .voice-picker {
+        display: flex; align-items: center; gap: 0.5rem;
+        margin-bottom: 1.25rem;
+      }
+      .voice-picker-label {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
+      }
+      .voice-btn {
+        font-family: 'Josefin Sans', sans-serif; font-size: 0.68rem; font-weight: 600;
+        letter-spacing: 0.5px; text-transform: uppercase;
+        background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+        padding: 0.28rem 0.8rem; cursor: pointer; color: var(--text-muted);
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+      }
+      .voice-btn:hover { border-color: var(--accent2); color: var(--accent); }
+      .voice-btn.active {
+        border-color: var(--accent2); color: var(--accent);
+        background: rgba(200,144,14,0.1);
+      }
     `;
     document.head.appendChild(s);
   }
@@ -649,23 +751,22 @@
 
   function updateUsageIndicator() {
     if (!usageIndicatorEl) return;
-    const fmt = FORMAT_MAP[currentFormat];
-    const cfg = limitConfig(fmt.mode, fmt.depth);
+    if (!_usageCache) { usageIndicatorEl.textContent = ''; return; }
 
-    if (!cfg) {
+    if (_usageCache.plan === 'paid') {
       usageIndicatorEl.textContent = '';
       usageIndicatorEl.className = 'usage-indicator';
       return;
     }
 
-    const used = getCount(cfg.key);
-    const remaining = cfg.max - used;
+    const used  = _usageCache.count ?? (FREE_LIMIT - (_usageCache.remaining ?? FREE_LIMIT));
+    const remaining = _usageCache.remaining ?? FREE_LIMIT;
     usageIndicatorEl.className = 'usage-indicator' +
-      (remaining <= 0 ? ' at-limit' : remaining <= 2 ? ' near-limit' : '');
+      (remaining <= 0 ? ' at-limit' : remaining === 1 ? ' near-limit' : '');
 
     usageIndicatorEl.textContent = remaining <= 0
-      ? `All ${cfg.max} free ${cfg.noun} used.`
-      : `${used} of ${cfg.max} free ${cfg.noun} used`;
+      ? `All ${FREE_LIMIT} free Research sessions used this month.`
+      : `${used} of ${FREE_LIMIT} free Research sessions used this month`;
   }
 
   // ─── Paywall banner ────────────────────────────────────────────────────────
@@ -726,7 +827,7 @@
     banner.innerHTML = `
       <p class="paywall-msg">
         <strong>${msg}</strong><br>
-        Unlock unlimited ${isSermon ? 'sermon manuscripts and study tools' : 'deep research'} for $20/month.
+        Unlock unlimited Research for $9/month or $79/year.
         7-day free trial — cancel anytime.
       </p>
       <div class="paywall-actions">
@@ -792,6 +893,8 @@
     const headers = { 'Content-Type': 'application/json' };
     const token = getStoredToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
+    const fp = await getFingerprint();
+    headers['x-fingerprint'] = fp;
 
     const res = await fetch('/api/run-research', {
       method:  'POST',
@@ -801,15 +904,28 @@
 
     // Server-side paywall responses
     if (res.status === 402) {
-      throw Object.assign(new Error('subscription_required'), { isPaywall: true });
+      const body = await res.json().catch(() => ({}));
+      if (body.error === 'free_limit_reached') {
+        // Update local cache so indicator reflects the limit
+        _usageCache = { plan: 'free', remaining: 0, count: FREE_LIMIT };
+        updateUsageIndicator();
+      }
+      throw Object.assign(new Error(body.error || 'subscription_required'), { isPaywall: true });
     }
     if (res.status === 401) {
-      // Token expired — clear it and prompt re-subscribe
       localStorage.removeItem(SESSION_KEY);
       throw Object.assign(new Error('token_expired'), { isPaywall: true });
     }
 
     if (!res.ok) throw new Error(`Server error ${res.status}: ${await res.text()}`);
+
+    // Update usage cache after successful run
+    if (_usageCache?.plan === 'free') {
+      _usageCache.count = (_usageCache.count ?? 0) + 1;
+      _usageCache.remaining = Math.max(0, (_usageCache.remaining ?? FREE_LIMIT) - 1);
+      updateUsageIndicator();
+    }
+
     return res.json();
   }
 
@@ -836,8 +952,7 @@
     try {
       const data = await callAPI(mode, depth, query, traditions);
 
-      const cfg = limitConfig(mode, depth);
-      if (cfg) { incCount(cfg.key); updateUsageIndicator(); }
+      updateUsageIndicator();
 
       researchHistorySave(currentFormat, currentTradition, currentDenom, query);
       renderResults(data);
@@ -861,6 +976,8 @@
 
     const wrap = document.createElement('div');
     wrap.className = 'research-results';
+
+    wrap.appendChild(buildVoicePicker());
 
     Object.entries(results).forEach(([tradition, content]) => {
       wrap.appendChild(buildTraditionCard(tradition, content));
@@ -892,6 +1009,17 @@
     expBtn.addEventListener('click', () => exportMarkdown(data));
     wrap.appendChild(expBtn);
 
+    // Save button — paid users only
+    if (_usageCache?.plan === 'paid') {
+      const saveBtn = document.createElement('button');
+      saveBtn.id        = 'saveResultBtn';
+      saveBtn.className = 'save-result-btn';
+      saveBtn.textContent = 'Save';
+      saveBtn.addEventListener('click', () => saveCurrentResult(data));
+      wrap.appendChild(saveBtn);
+    }
+
+    _currentData = data;
     resultsSection.appendChild(wrap);
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -1081,42 +1209,79 @@
     return parts.join('').trim();
   }
 
-  // ─── TTS ──────────────────────────────────────────────────────────────────
+  // ─── TTS (ElevenLabs) ─────────────────────────────────────────────────────
 
-  const hasTTS = 'speechSynthesis' in window;
-  let _ttsBtn  = null;   // currently active listen button
-  let _ttsTimer = null;  // Chrome keepalive timer
+  const hasTTS = true;
+  let _ttsBtn   = null;   // currently active listen button
+  let _ttsAudio = null;   // current HTMLAudioElement
+
+  let _ttsVoice = localStorage.getItem('mp_tts_voice') || 'male';
 
   function ttsStop() {
-    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-    clearInterval(_ttsTimer);
-    _ttsTimer = null;
+    if (_ttsAudio) {
+      _ttsAudio.pause();
+      _ttsAudio.src = '';
+      _ttsAudio = null;
+    }
     if (_ttsBtn) { _ttsBtn.textContent = '▶ Listen'; _ttsBtn = null; }
   }
 
-  function ttsSpeak(text, btn) {
-    // Toggle off if same button
+  async function ttsSpeak(text, btn) {
     if (_ttsBtn === btn) { ttsStop(); return; }
-    // Stop previous
     ttsStop();
 
-    const utt  = new SpeechSynthesisUtterance(text);
-    utt.rate   = 0.93;
-    utt.pitch  = 1;
-    utt.onend  = () => { clearInterval(_ttsTimer); _ttsTimer = null; if (_ttsBtn === btn) { btn.textContent = '▶ Listen'; _ttsBtn = null; } };
-    utt.onerror = utt.onend;
-
-    btn.textContent = '◼ Stop';
+    btn.textContent = '… Loading';
+    btn.disabled = true;
     _ttsBtn = btn;
-    window.speechSynthesis.speak(utt);
 
-    // Chrome bug: synthesis pauses on long text after ~15s
-    _ttsTimer = setInterval(() => {
-      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
-      }
-    }, 14000);
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: _ttsVoice }),
+      });
+
+      if (!res.ok) throw new Error(`TTS error ${res.status}`);
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      _ttsAudio = audio;
+
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        if (_ttsBtn === btn) { btn.textContent = '▶ Listen'; _ttsBtn = null; }
+        _ttsAudio = null;
+      };
+      audio.onerror = audio.onended;
+
+      btn.textContent = '◼ Stop';
+      btn.disabled = false;
+      audio.play();
+    } catch (err) {
+      console.error('[ttsSpeak]', err.message);
+      btn.textContent = '▶ Listen';
+      btn.disabled = false;
+      _ttsBtn = null;
+    }
+  }
+
+  function buildVoicePicker() {
+    const wrap = document.createElement('div');
+    wrap.className = 'voice-picker';
+    wrap.innerHTML = `
+      <span class="voice-picker-label">Voice</span>
+      <button class="voice-btn${_ttsVoice === 'female' ? ' active' : ''}" data-voice="female" type="button">Female</button>
+      <button class="voice-btn${_ttsVoice === 'male'   ? ' active' : ''}" data-voice="male"   type="button">Male</button>`;
+    wrap.querySelectorAll('.voice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ttsStop();
+        _ttsVoice = btn.dataset.voice;
+        localStorage.setItem('mp_tts_voice', _ttsVoice);
+        wrap.querySelectorAll('.voice-btn').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+    return wrap;
   }
 
   function buildSpeakText(tradition, content) {
@@ -1250,6 +1415,188 @@
     const a    = Object.assign(document.createElement('a'), { href: url, download: `${depth}-${slug}-${date}.md` });
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  // ─── Saves ────────────────────────────────────────────────────────────────
+
+  let _savesOpen   = false;
+  let _currentData = null; // last successful run result
+
+  function injectMySavesBtn() {
+    if (document.getElementById('mySavesBtn')) return;
+    const btn = document.createElement('button');
+    btn.id        = 'mySavesBtn';
+    btn.className = 'my-saves-btn';
+    btn.textContent = 'My Saves';
+    btn.addEventListener('click', () => {
+      if (_savesOpen) hideSavesPanel();
+      else showSavesPanel();
+    });
+    // Insert into topnav-links
+    const navLinks = document.querySelector('.topnav-links');
+    if (navLinks) navLinks.appendChild(btn);
+  }
+
+  function authHeaders() {
+    const h = { 'Content-Type': 'application/json' };
+    const token = getStoredToken();
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  }
+
+  async function loadSaves() {
+    try {
+      const res = await fetch('/api/saves', { headers: authHeaders() });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
+  }
+
+  async function apiDeleteSave(id) {
+    await fetch(`/api/saves/${id}`, { method: 'DELETE', headers: authHeaders() });
+  }
+
+  async function apiCreateSave(payload) {
+    const res = await fetch('/api/saves', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  }
+
+  function autoTitle(data) {
+    const fmt   = FORMAT_MAP[data.depth]?.name || data.depth;
+    const trad  = data.traditions?.length === 1 ? data.traditions[0] : 'All traditions';
+    return `${fmt} · ${data.input?.slice(0, 50) || 'Untitled'} (${trad})`;
+  }
+
+  function showSavesPanel() {
+    _savesOpen = true;
+    const section = document.getElementById('savesSection');
+    if (section) { renderSavesPanel(); return; }
+
+    const el = document.createElement('section');
+    el.id = 'savesSection';
+    el.className = 'saves-panel';
+    // Insert just above the featured section
+    const featured = document.querySelector('.featured-section');
+    if (featured) featured.insertAdjacentElement('beforebegin', el);
+    else document.querySelector('main')?.prepend(el);
+
+    renderSavesPanel();
+  }
+
+  function hideSavesPanel() {
+    _savesOpen = false;
+    document.getElementById('savesSection')?.remove();
+  }
+
+  async function renderSavesPanel() {
+    const el = document.getElementById('savesSection');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="saves-panel-header">
+        <span class="saves-panel-title">My Saves</span>
+        <button class="saves-panel-close" type="button">Close ✕</button>
+      </div>
+      <div class="saves-list" id="savesList"><div class="saves-empty">Loading…</div></div>
+      <div class="saves-panel-divider"></div>`;
+
+    el.querySelector('.saves-panel-close').addEventListener('click', hideSavesPanel);
+
+    const saves = await loadSaves();
+    const list  = document.getElementById('savesList');
+    if (!list) return;
+
+    if (!saves.length) {
+      list.innerHTML = '<div class="saves-empty">No saved research yet. Run a session and tap Save.</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    saves.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'save-card';
+      card.dataset.saveId = s.id;
+
+      const date = new Date(s.updated_at || s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      const tradLabel = s.denomination && s.denomination !== s.tradition ? s.denomination : (s.tradition || 'All traditions');
+      const fmtLabel  = FORMAT_MAP[s.format]?.name || s.format;
+
+      card.innerHTML = `
+        <div class="save-card-info">
+          <div class="save-card-title">${escHtml(s.title || s.topic || 'Untitled')}</div>
+          <div class="save-card-meta">${escHtml(fmtLabel)} · ${escHtml(tradLabel)} · ${escHtml(date)}</div>
+        </div>
+        <div class="save-card-actions">
+          <button class="save-load-btn" type="button">Load</button>
+          <button class="save-delete-btn" type="button">Delete</button>
+        </div>`;
+
+      card.querySelector('.save-load-btn').addEventListener('click', async () => {
+        try {
+          const full = await fetch(`/api/saves/${s.id}`, { headers: authHeaders() });
+          const save = await full.json();
+          hideSavesPanel();
+          if (save.tradition) selectTradition(save.tradition);
+          if (save.denomination) {
+            const denomPill = document.querySelector(`#denomSubpicker [data-value="${CSS.escape(save.denomination)}"]`);
+            if (denomPill) selectDenom(denomPill, save.denomination);
+          }
+          if (save.format) selectFormat(save.format);
+          if (save.topic && inputEl) inputEl.value = save.topic;
+          if (save.output) { _currentData = save.output; renderResults(save.output); }
+          resultsSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e) { console.error('[saves] load error', e.message); }
+      });
+
+      card.querySelector('.save-delete-btn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        if (btn.dataset.confirm !== '1') {
+          btn.textContent = 'Sure?'; btn.dataset.confirm = '1';
+          setTimeout(() => { if (btn.isConnected) { btn.textContent = 'Delete'; btn.dataset.confirm = ''; } }, 3000);
+          return;
+        }
+        try {
+          await apiDeleteSave(s.id);
+          card.remove();
+          if (!document.querySelectorAll('#savesList .save-card').length) {
+            document.getElementById('savesList').innerHTML = '<div class="saves-empty">No saved research yet.</div>';
+          }
+        } catch (e) { console.error('[saves] delete error', e.message); }
+      });
+
+      list.appendChild(card);
+    });
+  }
+
+  async function saveCurrentResult(data) {
+    const btn = document.getElementById('saveResultBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      const title = autoTitle(data);
+      await apiCreateSave({
+        title,
+        tradition:   data.traditions?.[0] || null,
+        denomination: data.traditions?.length === 1 ? data.traditions[0] : null,
+        topic:       data.input,
+        format:      data.depth,
+        depth:       data.depth,
+        language:    'en',
+        output:      data,
+      });
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { if (btn.isConnected) { btn.textContent = 'Save'; btn.disabled = false; } }, 2500);
+      // Refresh panel if open
+      if (_savesOpen) renderSavesPanel();
+    } catch (e) {
+      btn.textContent = 'Error'; btn.disabled = false;
+      console.error('[saves] create error', e.message);
+    }
   }
 
   // ─── Utility ──────────────────────────────────────────────────────────────

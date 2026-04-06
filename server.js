@@ -11,6 +11,7 @@ import { resolvedModels } from "./models.js";
 import { TRADITION_CONTEXT } from "./tradition-context.js";
 import { verifyToken } from "./auth.js";
 import { createCheckout, verifyCheckout, handleWebhook } from "./stripe-handlers.js";
+import { checkUsage, incrementUsage, listSaves, getSave, createSave, deleteSave } from "./supabase.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
@@ -257,25 +258,35 @@ const server = http.createServer(async (req, res) => {
 
   // Research page API — used by research-ui.js
   if (req.method === "POST" && pathname === "/api/run-research") {
-    // ─── Paywall gate (server-side) ─────────────────────────────────────────
-    // Activate by setting RESEARCH_PAYWALL_ENABLED=true in Vercel env.
-    // While false, all research requests pass through regardless of token.
-    const paywallEnabled = process.env.RESEARCH_PAYWALL_ENABLED === 'true';
-    if (paywallEnabled) {
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-      const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
-      if (!token || !jwtSecret) {
-        res.writeHead(402, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'subscription_required' }));
-      }
+    // ─── Auth + Usage gate ───────────────────────────────────────────────────
+    // Paid users: valid JWT → unlimited access, no usage tracking
+    // Free users: 3 runs/month tracked by fingerprint or userId
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
+    let isPaid = false;
+    let tokenUserId = null;
+
+    if (token && jwtSecret) {
       try {
-        verifyToken(token, jwtSecret);
-      } catch (tokenErr) {
-        const code = tokenErr.message === 'expired' ? 401 : 403;
-        res.writeHead(code, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: tokenErr.message === 'expired' ? 'token_expired' : 'token_invalid' }));
+        const payload = verifyToken(token, jwtSecret);
+        isPaid = true;
+        tokenUserId = payload.customerId || null;
+      } catch {
+        // Invalid/expired token — treat as free user
       }
+    }
+
+    if (!isPaid) {
+      const fingerprint = req.headers['x-fingerprint'] || req.headers['x-forwarded-for'] || 'unknown';
+      const usage = await checkUsage(tokenUserId, fingerprint);
+      if (!usage.allowed) {
+        res.writeHead(402, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'free_limit_reached', remaining: 0 }));
+      }
+      // Increment after confirming allowed (will also increment after successful run below)
+      req._usageFingerprint = fingerprint;
+      req._usageUserId = tokenUserId;
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -285,6 +296,10 @@ const server = http.createServer(async (req, res) => {
       try {
         const { mode, depth, input, traditions } = JSON.parse(body);
         const result = await runResearch(mode, depth, input, traditions);
+        // Increment usage for free users after successful run
+        if (req._usageFingerprint !== undefined) {
+          incrementUsage(req._usageUserId, req._usageFingerprint).catch(e => console.error('[usage/increment]', e.message));
+        }
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (err) {
@@ -296,6 +311,78 @@ const server = http.createServer(async (req, res) => {
       }
     });
     return;
+  }
+
+  // ─── Saves API (paid users only) ─────────────────────────────────────────
+  if (pathname.startsWith('/api/saves')) {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
+    if (!token || !jwtSecret) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'auth_required' }));
+    }
+    let payload;
+    try {
+      payload = verifyToken(token, jwtSecret);
+    } catch {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'token_invalid' }));
+    }
+    const userId = payload.customerId;
+    const saveId = pathname.split('/')[3] || null;
+
+    try {
+      if (req.method === 'GET' && !saveId) {
+        const saves = await listSaves(userId);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify(saves));
+      }
+      if (req.method === 'GET' && saveId) {
+        const save = await getSave(userId, saveId);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify(save));
+      }
+      if (req.method === 'POST') {
+        let body = '';
+        req.on('data', c => (body += c));
+        await new Promise(r => req.on('end', r));
+        const save = await createSave(userId, JSON.parse(body));
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify(save));
+      }
+      if (req.method === 'DELETE' && saveId) {
+        await deleteSave(userId, saveId);
+        res.writeHead(204);
+        return res.end();
+      }
+      res.writeHead(405);
+      return res.end('Method not allowed');
+    } catch (err) {
+      console.error('[/api/saves]', err.message);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: err.message }));
+    }
+  }
+
+  // ─── Usage check endpoint ─────────────────────────────────────────────────
+  if (req.method === 'GET' && pathname === '/api/usage') {
+    const authHeader = req.headers['authorization'] || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
+    let userId = null;
+    let isPaid = false;
+    if (token && jwtSecret) {
+      try { const p = verifyToken(token, jwtSecret); isPaid = true; userId = p.customerId; } catch {}
+    }
+    if (isPaid) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ plan: 'paid', remaining: null }));
+    }
+    const fingerprint = req.headers['x-fingerprint'] || req.headers['x-forwarded-for'] || 'unknown';
+    const usage = await checkUsage(userId, fingerprint);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ plan: 'free', remaining: usage.remaining, count: usage.count }));
   }
 
   // Root: serve index.html with optional dynamic OG tags
@@ -329,6 +416,57 @@ const server = http.createServer(async (req, res) => {
       console.error("[/og]", err.message);
       return serveStatic(res, path.join(__dirname, "og-default.png"));
     }
+  }
+
+  // ─── ElevenLabs TTS ──────────────────────────────────────────────────────
+  if (req.method === 'POST' && pathname === '/api/tts') {
+    let body = '';
+    req.on('data', c => (body += c));
+    req.on('end', async () => {
+      try {
+        const { text, voice } = JSON.parse(body);
+        if (!text || typeof text !== 'string') {
+          res.writeHead(400); return res.end('Missing text');
+        }
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        if (!apiKey) {
+          res.writeHead(503); return res.end('TTS not configured');
+        }
+        const VOICES = {
+          male:   'onwK4e9ZLuTAKqWW03F9',  // Daniel — steady broadcaster, British
+          female: 'EXAVITQu4vr4xnSDxMaL',  // Sarah — mature, reassuring, confident
+        };
+        const voiceId = VOICES[voice] || VOICES.female;
+        const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
+          method: 'POST',
+          headers: {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'audio/mpeg',
+          },
+          body: JSON.stringify({
+            text: text.slice(0, 5000),
+            model_id: 'eleven_turbo_v2_5',
+            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+          }),
+        });
+        if (!elRes.ok) {
+          const errText = await elRes.text();
+          console.error('[/api/tts] ElevenLabs error:', elRes.status, errText);
+          res.writeHead(502); return res.end('TTS error');
+        }
+        res.writeHead(200, {
+          'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'no-store',
+          ...SECURITY_HEADERS,
+        });
+        elRes.body.pipe(res);
+      } catch (err) {
+        console.error('[/api/tts]', err.message);
+        if (!res.headersSent) { res.writeHead(500); res.end('Internal error'); }
+      }
+    });
+    return;
   }
 
   // Research page
