@@ -44,6 +44,35 @@ const BLOCKED_FINGERPRINTS = new Set([
   '4d98f02fb217a76d7266805a9b42b366276fba8222236109caff9893839cffa6',
 ]);
 
+// ─── Rate limit alert (Resend) ────────────────────────────────────────────────
+// Fires at most once per hour to avoid spam. In-memory cooldown.
+const _alertCooldown = new Map(); // fingerprint → last alert timestamp
+const ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+
+async function sendRateLimitAlert(fingerprint, endpoint, reason) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+
+  const now = Date.now();
+  const last = _alertCooldown.get(fingerprint);
+  if (last && now - last < ALERT_COOLDOWN_MS) return; // already alerted recently
+  _alertCooldown.set(fingerprint, now);
+
+  const to = process.env.ADMIN_ALERT_EMAIL || 'hello@legisplain.org';
+  const subject = `🚨 ManyPaths abuse detected — ${reason}`;
+  const body = `Endpoint: ${endpoint}\nFingerprint: ${fingerprint}\nReason: ${reason}\nTime: ${new Date().toISOString()}\n\nCheck Vercel logs and Anthropic usage dashboard.`;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'decode@legisplain.org', to, subject, text: body }),
+    });
+  } catch (e) {
+    console.error('[alert] Resend failed:', e.message);
+  }
+}
+
 const MIME = {
   ".html": "text/html",
   ".css":  "text/css",
@@ -309,12 +338,14 @@ const server = http.createServer(async (req, res) => {
 
       // Hard block known abusive devices
       if (BLOCKED_FINGERPRINTS.has(fingerprint)) {
+        sendRateLimitAlert(fingerprint, '/api/run-research', 'hard-blocked device').catch(() => {});
         res.writeHead(403, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'access_denied' }));
       }
 
       // Per-device rate limit (30s cooldown) — stops machine-gun bypass attempts
       if (isRateLimited(fingerprint)) {
+        sendRateLimitAlert(fingerprint, '/api/run-research', 'rate limited (30s cooldown)').catch(() => {});
         res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '30' });
         return res.end(JSON.stringify({ error: 'rate_limited', retryAfter: 30 }));
       }
@@ -323,6 +354,7 @@ const server = http.createServer(async (req, res) => {
       // We increment BEFORE running; if over limit, we reject (count stays bumped, correct behavior).
       const { newCount, allowed } = await atomicIncrementUsage(tokenUserId, fingerprint);
       if (!allowed) {
+        sendRateLimitAlert(fingerprint, '/api/run-research', `monthly limit exceeded (count=${newCount})`).catch(() => {});
         res.writeHead(402, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'free_limit_reached', remaining: 0 }));
       }
