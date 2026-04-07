@@ -11,11 +11,38 @@ import { resolvedModels } from "./models.js";
 import { TRADITION_CONTEXT } from "./tradition-context.js";
 import { verifyToken } from "./auth.js";
 import { createCheckout, verifyCheckout, handleWebhook } from "./stripe-handlers.js";
-import { checkUsage, incrementUsage, listSaves, getSave, createSave, deleteSave } from "./supabase.js";
+import { checkUsage, atomicIncrementUsage, FREE_LIMIT, listSaves, getSave, createSave, deleteSave } from "./supabase.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').trim() });
 const PORT = process.env.PORT || 3100;
+
+// ─── Per-fingerprint rate limiter ─────────────────────────────────────────────
+// Prevents machine-gun requests from bypassing the monthly gate.
+// In-memory: per-process, resets on cold start — intentional (defense in depth only).
+const RATE_LIMIT_MS = 30_000; // 30 seconds between requests per device
+const _lastRequest  = new Map(); // fingerprint → timestamp
+
+function isRateLimited(fingerprint) {
+  const now = Date.now();
+  const last = _lastRequest.get(fingerprint);
+  if (last && now - last < RATE_LIMIT_MS) return true;
+  _lastRequest.set(fingerprint, now);
+  // Prune map to prevent unbounded growth (keep last 5000 entries)
+  if (_lastRequest.size > 5000) {
+    const oldest = [..._lastRequest.entries()]
+      .sort((a, b) => a[1] - b[1])
+      .slice(0, 1000)
+      .map(([k]) => k);
+    oldest.forEach(k => _lastRequest.delete(k));
+  }
+  return false;
+}
+
+// Known abusive device fingerprints — blocked permanently
+const BLOCKED_FINGERPRINTS = new Set([
+  '4d98f02fb217a76d7266805a9b42b366276fba8222236109caff9893839cffa6',
+]);
 
 const MIME = {
   ".html": "text/html",
@@ -279,14 +306,26 @@ const server = http.createServer(async (req, res) => {
 
     if (!isPaid) {
       const fingerprint = req.headers['x-fingerprint'] || req.headers['x-forwarded-for'] || 'unknown';
-      const usage = await checkUsage(tokenUserId, fingerprint);
-      if (!usage.allowed) {
+
+      // Hard block known abusive devices
+      if (BLOCKED_FINGERPRINTS.has(fingerprint)) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'access_denied' }));
+      }
+
+      // Per-device rate limit (30s cooldown) — stops machine-gun bypass attempts
+      if (isRateLimited(fingerprint)) {
+        res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '30' });
+        return res.end(JSON.stringify({ error: 'rate_limited', retryAfter: 30 }));
+      }
+
+      // Atomic increment-then-check — eliminates the race condition.
+      // We increment BEFORE running; if over limit, we reject (count stays bumped, correct behavior).
+      const { newCount, allowed } = await atomicIncrementUsage(tokenUserId, fingerprint);
+      if (!allowed) {
         res.writeHead(402, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'free_limit_reached', remaining: 0 }));
       }
-      // Increment after confirming allowed (will also increment after successful run below)
-      req._usageFingerprint = fingerprint;
-      req._usageUserId = tokenUserId;
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -296,10 +335,6 @@ const server = http.createServer(async (req, res) => {
       try {
         const { mode, depth, input, traditions } = JSON.parse(body);
         const result = await runResearch(mode, depth, input, traditions);
-        // Increment usage for free users after successful run
-        if (req._usageFingerprint !== undefined) {
-          incrementUsage(req._usageUserId, req._usageFingerprint).catch(e => console.error('[usage/increment]', e.message));
-        }
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (err) {

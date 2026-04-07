@@ -12,7 +12,7 @@ const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPAB
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const FREE_LIMIT = 3;
+export const FREE_LIMIT = 3;
 
 function currentMonth() {
   const d = new Date();
@@ -53,45 +53,34 @@ export async function checkUsage(userId, fingerprint) {
 
 /**
  * Increment run count for a user/fingerprint this month.
+ * @deprecated Use atomicIncrementUsage instead — this has a race condition.
  */
 export async function incrementUsage(userId, fingerprint) {
+  await atomicIncrementUsage(userId, fingerprint);
+}
+
+/**
+ * Atomically increment the run count and return the new count.
+ * Uses a Postgres RPC with ON CONFLICT to avoid race conditions.
+ * Returns { newCount, allowed } where allowed = newCount <= FREE_LIMIT.
+ */
+export async function atomicIncrementUsage(userId, fingerprint) {
   const month = currentMonth();
 
-  if (userId) {
-    const { data } = await supabase
-      .from('research_usage')
-      .select('id, run_count')
-      .match({ user_id: userId, month })
-      .maybeSingle();
+  const { data, error } = await supabase.rpc('increment_usage_atomic', {
+    p_fingerprint: fingerprint ?? null,
+    p_user_id:     userId     ?? null,
+    p_month:       month,
+  });
 
-    if (data) {
-      await supabase
-        .from('research_usage')
-        .update({ run_count: data.run_count + 1, updated_at: new Date().toISOString() })
-        .eq('id', data.id);
-    } else {
-      await supabase
-        .from('research_usage')
-        .insert({ user_id: userId, month, run_count: 1 });
-    }
-  } else if (fingerprint) {
-    const { data } = await supabase
-      .from('research_usage')
-      .select('id, run_count')
-      .match({ fingerprint, month })
-      .maybeSingle();
-
-    if (data) {
-      await supabase
-        .from('research_usage')
-        .update({ run_count: data.run_count + 1, updated_at: new Date().toISOString() })
-        .eq('id', data.id);
-    } else {
-      await supabase
-        .from('research_usage')
-        .insert({ fingerprint, month, run_count: 1 });
-    }
+  if (error) {
+    console.error('[supabase/atomicIncrementUsage]', error.message);
+    // Fail open — don't block users if DB is down
+    return { newCount: 1, allowed: true };
   }
+
+  const newCount = data ?? 1;
+  return { newCount, allowed: newCount <= FREE_LIMIT };
 }
 
 // ─── Saves ────────────────────────────────────────────────────────────────────
