@@ -482,7 +482,7 @@
       }
       .paywall-dismiss:hover { color: var(--text); }
       .sermon-pack-nudge {
-        font-size: 0.82rem; color: var(--text-muted); padding-top: 0.6rem;
+        font-size: 0.82rem; color: var(--text); padding-top: 0.6rem;
         border-top: 1px solid rgba(180,80,20,0.15); line-height: 1.5;
       }
       .sermon-pack-nudge a { color: var(--accent); text-decoration: none; font-weight: 600; }
