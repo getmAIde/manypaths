@@ -538,7 +538,7 @@ function showTipJar() {
   jar.className = 'tip-jar';
   jar.innerHTML = `
     <button class="tip-dismiss" aria-label="Dismiss" onclick="this.closest('.tip-jar').remove();sessionStorage.setItem('mp_tip_shown','1')">×</button>
-    <span class="tip-jar-msg">Many Paths is free. If it helped you today, pay what you want.</span>
+    <span class="tip-jar-msg">Compare is FREE — and always will be. If it helped today, pay what you can.</span>
     <div class="tip-amounts">
       <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip $3">$3</a>
       <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip $5">$5</a>
