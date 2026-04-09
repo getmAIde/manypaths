@@ -20,7 +20,7 @@ const CANCEL_URL    = `${BASE_URL}/research?checkout=cancelled`;
 function stripeClient() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error('STRIPE_SECRET_KEY not set');
-  return new Stripe(key, { apiVersion: '2025-03-31.basil' });
+  return new Stripe(key, { apiVersion: '2024-06-20' });
 }
 
 // POST /api/checkout → { url: <stripe-hosted-checkout-url> }
