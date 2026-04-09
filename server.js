@@ -287,9 +287,19 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && pathname === "/api/checkout") {
     let body = '';
     req.on('data', c => (body += c));
-    req.on('end', () => {
-      const { seminary = false } = JSON.parse(body || '{}');
-      return createCheckout(res, { seminary });
+    req.on('end', async () => {
+      try {
+        const parsed = JSON.parse(body || '{}');
+        console.log('[checkout] body:', JSON.stringify(parsed));
+        console.log('[checkout] STRIPE_SECRET_KEY set:', !!process.env.STRIPE_SECRET_KEY);
+        console.log('[checkout] STRIPE_PRICE_ID_MONTHLY:', process.env.STRIPE_PRICE_ID_MONTHLY);
+        const { seminary = false } = parsed;
+        return await createCheckout(res, { seminary });
+      } catch (err) {
+        console.error('[checkout] outer error:', err.message, err.stack);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
     });
     return;
   }
