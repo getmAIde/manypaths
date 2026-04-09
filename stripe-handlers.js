@@ -154,3 +154,46 @@ export async function handleWebhook(req, res) {
     }
   });
 }
+
+/**
+ * POST /api/plate (donations)
+ * Body: { amount: <cents> }
+ * Returns: { url: <stripe_hosted_checkout_url> }
+ */
+export async function createDonationCheckout(res, amountCents) {
+  try {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) throw new Error('STRIPE_SECRET_KEY not set');
+
+    const params = new URLSearchParams();
+    params.append('mode', 'payment');
+    params.append('line_items[0][price_data][currency]', 'usd');
+    params.append('line_items[0][price_data][product_data][name]', 'Pass the Plate — Many Paths');
+    params.append('line_items[0][price_data][product_data][description]', 'Keep the lights on. Compare is always free.');
+    params.append('line_items[0][price_data][unit_amount]', String(amountCents));
+    params.append('line_items[0][quantity]', '1');
+    params.append('success_url', 'https://manypaths.one/?donated=1');
+    params.append('cancel_url', 'https://manypaths.one/');
+
+    const response = await fetch(`${STRIPE_API}/checkout/sessions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${secretKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Stripe error: ${response.status}`);
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ url: data.url }));
+  } catch (err) {
+    console.error('[plate/create] error:', err.message);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Checkout unavailable. Try again later.' }));
+  }
+}
