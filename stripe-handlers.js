@@ -24,23 +24,30 @@ function stripeClient() {
 }
 
 // POST /api/checkout → { url: <stripe-hosted-checkout-url> }
-export async function createCheckout(res) {
+// seminary=true applies the SEMINARY44 coupon (44% off forever)
+export async function createCheckout(res, { seminary = false } = {}) {
   try {
     const stripe    = stripeClient();
     const priceId   = process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_PRICE_ID;
     if (!priceId) throw new Error('STRIPE_PRICE_ID_MONTHLY not set');
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams = {
       mode:                 'subscription',
       line_items:           [{ price: priceId, quantity: 1 }],
       success_url:          SUCCESS_URL,
       cancel_url:           CANCEL_URL,
-      allow_promotion_codes: true,
+      allow_promotion_codes: !seminary, // hide promo box when applying seminary coupon directly
       subscription_data: {
         trial_period_days: 7,
-        metadata: { product: 'manypaths_research_pro' },
+        metadata: { product: 'manypaths_research_pro', seminary: seminary ? 'true' : 'false' },
       },
-    });
+    };
+
+    if (seminary) {
+      sessionParams.discounts = [{ coupon: 'SEMINARY44' }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ url: session.url }));
