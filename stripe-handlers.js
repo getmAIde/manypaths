@@ -29,14 +29,21 @@ export async function createCheckout(req, res) {
   req.on('data', chunk => body += chunk);
   req.on('end', async () => {
     try {
-      const { annual } = JSON.parse(body || '{}');
+      const { annual, seminary } = JSON.parse(body || '{}');
       const secretKey = process.env.STRIPE_SECRET_KEY;
-      const priceId = annual
-        ? process.env.STRIPE_PRICE_ID_YEARLY
-        : process.env.STRIPE_PRICE_ID_MONTHLY;
+      let priceId;
+      if (seminary) {
+        priceId = annual
+          ? process.env.STRIPE_PRICE_ID_SEM_YEARLY
+          : process.env.STRIPE_PRICE_ID_SEM_MONTHLY;
+      } else {
+        priceId = annual
+          ? process.env.STRIPE_PRICE_ID_YEARLY
+          : process.env.STRIPE_PRICE_ID_MONTHLY;
+      }
 
       if (!secretKey) throw new Error('STRIPE_SECRET_KEY not set');
-      if (!priceId) throw new Error(`STRIPE_PRICE_ID_${annual ? 'YEARLY' : 'MONTHLY'} not set`);
+      if (!priceId) throw new Error(`STRIPE_PRICE_ID_${seminary ? 'SEM_' : ''}${annual ? 'YEARLY' : 'MONTHLY'} not set`);
 
       const params = new URLSearchParams();
       params.append('mode', 'subscription');
