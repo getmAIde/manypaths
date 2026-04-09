@@ -30,16 +30,16 @@ export async function createCheckout(req, res) {
   req.on('end', async () => {
     try {
       const { annual, seminary } = JSON.parse(body || '{}');
-      const secretKey = process.env.STRIPE_SECRET_KEY;
+      const secretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
       let priceId;
       if (seminary) {
-        priceId = annual
+        priceId = (annual
           ? process.env.STRIPE_PRICE_ID_SEM_YEARLY
-          : process.env.STRIPE_PRICE_ID_SEM_MONTHLY;
+          : process.env.STRIPE_PRICE_ID_SEM_MONTHLY)?.trim();
       } else {
-        priceId = annual
+        priceId = (annual
           ? process.env.STRIPE_PRICE_ID_YEARLY
-          : process.env.STRIPE_PRICE_ID_MONTHLY;
+          : process.env.STRIPE_PRICE_ID_MONTHLY)?.trim();
       }
 
       if (!secretKey) throw new Error('STRIPE_SECRET_KEY not set');
@@ -94,8 +94,8 @@ export async function verifyCheckout(req, res) {
         return res.end(JSON.stringify({ error: 'sessionId required' }));
       }
 
-      const secretKey = process.env.STRIPE_SECRET_KEY;
-      const jwtSecret = process.env.STRIPE_JWT_SECRET;
+      const secretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
+      const jwtSecret = (process.env.STRIPE_JWT_SECRET || '').trim();
       if (!secretKey) throw new Error('STRIPE_SECRET_KEY not set');
       if (!jwtSecret) throw new Error('STRIPE_JWT_SECRET not set');
 
@@ -162,7 +162,7 @@ export async function handleWebhook(req, res) {
  */
 export async function createDonationCheckout(res, amountCents) {
   try {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
+    const secretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
     if (!secretKey) throw new Error('STRIPE_SECRET_KEY not set');
 
     const params = new URLSearchParams();
