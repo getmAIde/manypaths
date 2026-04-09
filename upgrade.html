@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Many Paths</title>
+  <meta name="description" content="Free, Pro, and Seminary plans for Many Paths. Compare is always free. Unlock unlimited research sessions with Pro.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Josefin+Sans:wght@100;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/logo/favicon-16.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/logo/favicon-32.png">
+  <link rel="apple-touch-icon" href="/logo/icon-180.svg">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --parchment: #fef9f0;
+      --gold: #c8900e;
+      --gold-light: rgba(200, 144, 14, 0.12);
+      --gold-border: rgba(200, 144, 14, 0.3);
+      --radius-lg: 14px;
+    }
+
+    body { background: var(--parchment, #fef9f0); }
+
+    .upgrade-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .upgrade-eyebrow {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .upgrade-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 700;
+      text-align: center;
+      color: var(--text, #2a1f0e);
+      margin: 0 0 0.5rem;
+      line-height: 1.15;
+    }
+
+    .upgrade-subtitle {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--text-muted, #6b5740);
+      text-align: center;
+      margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+
+    /* ─── Tier grid ─── */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .tier-card {
+      background: #fff;
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    .tier-card:hover {
+      box-shadow: 0 4px 24px rgba(200, 144, 14, 0.12);
+    }
+    .tier-card.featured {
+      border-color: var(--gold);
+      background: linear-gradient(160deg, #fffdf5 0%, #fef6e0 100%);
+    }
+    .tier-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: var(--gold);
+      color: #fff;
+      border-radius: 20px;
+      padding: 3px 12px;
+      white-space: nowrap;
+    }
+
+    .tier-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text, #2a1f0e);
+      margin: 0 0 0.35rem;
+    }
+
+    .tier-price {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+    .tier-price span {
+      font-size: 0.85rem;
+      font-weight: 100;
+      color: var(--text-muted, #6b5740);
+    }
+
+    .tier-alt-price {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-muted, #6b5740);
+      margin-bottom: 1rem;
+    }
+
+    .tier-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.25rem;
+      flex: 1;
+    }
+    .tier-features li {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.92rem;
+      color: var(--text-muted, #6b5740);
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(200, 144, 14, 0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .tier-features li:last-child { border-bottom: none; }
+    .tier-features li::before {
+      content: '✦';
+      color: var(--gold);
+      font-size: 0.65rem;
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .tier-cta {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid var(--gold-border);
+      border-radius: 30px;
+      padding: 0.55rem 1.25rem;
+      color: var(--gold);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .tier-cta:hover {
+      background: var(--gold-light);
+      border-color: var(--gold);
+    }
+    .tier-cta.primary {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff;
+    }
+    .tier-cta.primary:hover {
+      background: #b07c0a;
+      border-color: #b07c0a;
+    }
+    .tier-cta:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ─── Seminary note ─── */
+    .seminary-note {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.82rem;
+      color: var(--text-muted, #6b5740);
+      font-style: italic;
+      margin-top: 0.6rem;
+      text-align: center;
+    }
+
+    /* ─── Billing toggle ─── */
+    .billing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-muted, #6b5740);
+    }
+    .billing-toggle input[type=checkbox] { display: none; }
+    .billing-switch {
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+      background: var(--gold-border);
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .billing-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .billing-switch.annual::after { transform: translateX(18px); }
+    .billing-switch.annual { background: var(--gold); }
+    .save-pill {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: var(--gold-light);
+      border: 1px solid var(--gold-border);
+      color: var(--gold);
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    /* ─── Pass the plate ─── */
+    .plate-section {
+      border-top: 1px solid var(--gold-border);
+      padding-top: 2rem;
+      text-align: center;
+    }
+    .plate-eyebrow {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+    .plate-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text, #2a1f0e);
+      margin-bottom: 0.4rem;
+    }
+    .plate-sub {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      color: var(--text-muted, #6b5740);
+      font-style: italic;
+      margin-bottom: 1.1rem;
+    }
+    .plate-amounts {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .plate-btn {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--gold);
+      background: none;
+      border: 1px solid var(--gold-border);
+      border-radius: 30px;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .plate-btn:hover {
+      border-color: var(--gold);
+      background: var(--gold-light);
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="topnav-brand" href="/">Many Paths</a>
+    <div class="topnav-links">
+      <a class="topnav-link" href="/">Compare</a>
+      <a class="topnav-link" href="/research">Research</a>
+    </div>
+  </nav>
+
+  <div class="app">
+    <div class="upgrade-wrap">
+      <p class="upgrade-eyebrow">Pricing</p>
+      <h1 class="upgrade-title">Many Paths</h1>
+      <p class="upgrade-subtitle">Compare is always free. Research goes deeper — choose the plan that fits.</p>
+
+      <!-- Billing toggle -->
+      <div class="billing-toggle">
+        <span id="toggleLabelMonthly">Monthly</span>
+        <label class="billing-switch" id="billingSwitch" for="billingCheckbox"></label>
+        <input type="checkbox" id="billingCheckbox">
+        <span id="toggleLabelAnnual">Annual</span>
+        <span class="save-pill">Save ~27%</span>
+      </div>
+
+      <!-- Tier cards -->
+      <div class="tier-grid">
+
+        <!-- Free -->
+        <div class="tier-card">
+          <p class="tier-name">Free</p>
+          <div class="tier-price">$0</div>
+          <p class="tier-alt-price">Always and forever</p>
+          <ul class="tier-features">
+            <li>Unlimited Compare sessions</li>
+            <li>All 8 traditions</li>
+            <li>No account needed</li>
+            <li>3 Research sessions / month</li>
+          </ul>
+          <a href="/" class="tier-cta">Start Comparing →</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="tier-card featured">
+          <div class="tier-badge">Most Popular</div>
+          <p class="tier-name">Pro</p>
+          <div class="tier-price" id="proPrice">$9<span>/mo</span></div>
+          <p class="tier-alt-price" id="proAltPrice">billed monthly · cancel anytime</p>
+          <ul class="tier-features">
+            <li>Everything in Free</li>
+            <li>Unlimited Research sessions</li>
+            <li>Save your research</li>
+            <li>Early access to new features</li>
+          </ul>
+          <button class="tier-cta primary" id="proSubscribeBtn">Subscribe →</button>
+        </div>
+
+        <!-- Seminary -->
+        <div class="tier-card">
+          <p class="tier-name">Seminary</p>
+          <div class="tier-price" id="semPrice">$5<span>/mo</span></div>
+          <p class="tier-alt-price" id="semAltPrice">44% off for .edu — billed monthly</p>
+          <ul class="tier-features">
+            <li>Everything in Pro</li>
+            <li>For students &amp; faculty with a .edu email</li>
+            <li>No verification — we trust you</li>
+          </ul>
+          <button class="tier-cta" id="semSubscribeBtn">Subscribe with .edu →</button>
+          <p class="seminary-note">Enter your .edu email at checkout to unlock the discount.</p>
+          <!-- TODO: Create coupon code SEMINARY44 in Stripe Dashboard (44% off) and apply it
+               to the checkout session here. For now, tracking via ?seminary=1 query param. -->
+        </div>
+
+      </div>
+
+      <!-- Pass the Plate -->
+      <div class="plate-section">
+        <p class="plate-eyebrow">Pass the Plate</p>
+        <h2 class="plate-title">Not ready to subscribe?</h2>
+        <p class="plate-sub">Pay what you can. Every dollar keeps Compare free for everyone.</p>
+        <div class="plate-amounts">
+          <button class="plate-btn" onclick="passThePlate(300)">$3</button>
+          <button class="plate-btn" onclick="passThePlate(500)">$5</button>
+          <button class="plate-btn" onclick="passThePlate(1000)">$10</button>
+          <button class="plate-btn" onclick="passThePlate(2500)">$25</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="beta-footer-note" style="opacity:0.85;">Compare is always free · Research — 3 free sessions/month · <a href="/how-it-works" style="color:#c8900e;text-decoration:none;">How it works →</a></div>
+      <p>Many Paths presents scholarship for educational purposes only. Part of the <a href="https://getmaide.com">getmAIde</a> family. · <a href="mailto:feedback@manypaths.one?subject=Report an issue — Many Paths">Report an issue</a></p>
+      <p style="margin-top:0.5rem;font-size:0.75rem;opacity:0.55;">Helping congregations navigate social services → <a href="https://waythrough.app" target="_blank" rel="noopener noreferrer" style="color:inherit;">WayThrough</a></p>
+    </footer>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script>
+    // ─── Billing toggle ───────────────────────────────────────────────────────
+    const billingSwitch = document.getElementById('billingSwitch');
+    const billingCheckbox = document.getElementById('billingCheckbox');
+    const proPrice = document.getElementById('proPrice');
+    const proAltPrice = document.getElementById('proAltPrice');
+    const semPrice = document.getElementById('semPrice');
+    const semAltPrice = document.getElementById('semAltPrice');
+
+    let isAnnual = false;
+
+    function updatePricing() {
+      if (isAnnual) {
+        billingSwitch.classList.add('annual');
+        proPrice.innerHTML = '$79<span>/yr</span>';
+        proAltPrice.textContent = 'billed annually · cancel anytime';
+        semPrice.innerHTML = '$44<span>/yr</span>';
+        semAltPrice.textContent = '44% off for .edu — billed annually';
+      } else {
+        billingSwitch.classList.remove('annual');
+        proPrice.innerHTML = '$9<span>/mo</span>';
+        proAltPrice.textContent = 'billed monthly · cancel anytime';
+        semPrice.innerHTML = '$5<span>/mo</span>';
+        semAltPrice.textContent = '44% off for .edu — billed monthly';
+      }
+    }
+
+    billingSwitch.addEventListener('click', () => {
+      isAnnual = !isAnnual;
+      billingCheckbox.checked = isAnnual;
+      updatePricing();
+    });
+
+    // ─── Subscribe buttons ────────────────────────────────────────────────────
+    document.getElementById('proSubscribeBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('proSubscribeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ annual: isAnnual }),
+        });
+        const { url, error } = await res.json();
+        if (error) { alert('Something went sideways — try again in a moment.'); btn.disabled = false; btn.textContent = 'Subscribe →'; return; }
+        window.location.href = url;
+      } catch {
+        alert('Something went sideways — try again in a moment.');
+        btn.disabled = false;
+        btn.textContent = 'Subscribe →';
+      }
+    });
+
+    document.getElementById('semSubscribeBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('semSubscribeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      try {
+        // Seminary tier: track via ?seminary=1 for now.
+        // TODO: Apply Stripe coupon SEMINARY44 here once created in Stripe Dashboard.
+        const res = await fetch('/api/checkout?seminary=1', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ annual: isAnnual, seminary: true }),
+        });
+        const { url, error } = await res.json();
+        if (error) { alert('Something went sideways — try again in a moment.'); btn.disabled = false; btn.textContent = 'Subscribe with .edu →'; return; }
+        window.location.href = url;
+      } catch {
+        alert('Something went sideways — try again in a moment.');
+        btn.disabled = false;
+        btn.textContent = 'Subscribe with .edu →';
+      }
+    });
+
+    // ─── Pass the Plate ───────────────────────────────────────────────────────
+    async function passThePlate(cents) {
+      try {
+        const res = await fetch('/api/plate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: cents }),
+        });
+        const { url, error } = await res.json();
+        if (error) { alert('Something went sideways — try again in a moment.'); return; }
+        window.location.href = url;
+      } catch {
+        alert('Something went sideways — try again in a moment.');
+      }
+    }
+  </script>
+</body>
+</html>

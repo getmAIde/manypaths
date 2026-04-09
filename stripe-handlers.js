@@ -136,3 +136,29 @@ export async function handleWebhook(req, res) {
     }
   });
 }
+
+// POST /api/plate — one-time donation checkout (tip jar)
+export async function createDonationCheckout(res, amountCents) {
+  try {
+    const stripe = stripeClient();
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: 'Pass the Plate — Many Paths', description: 'Keep the lights on. Compare is always free.' },
+          unit_amount: amountCents,
+        },
+        quantity: 1,
+      }],
+      success_url: 'https://manypaths.one/?donated=1',
+      cancel_url: 'https://manypaths.one/',
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ url: session.url }));
+  } catch (err) {
+    console.error('[plate/create] error:', err.message);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Checkout unavailable. Try again later.' }));
+  }
+}

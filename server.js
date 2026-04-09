@@ -10,7 +10,7 @@ import { generateOG } from "./og-generator.js";
 import { resolvedModels } from "./models.js";
 import { TRADITION_CONTEXT } from "./tradition-context.js";
 import { verifyToken } from "./auth.js";
-import { createCheckout, verifyCheckout, handleWebhook } from "./stripe-handlers.js";
+import { createCheckout, verifyCheckout, handleWebhook, createDonationCheckout } from "./stripe-handlers.js";
 import { checkUsage, atomicIncrementUsage, FREE_LIMIT, listSaves, getSave, createSave, deleteSave } from "./supabase.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -301,7 +301,7 @@ const server = http.createServer(async (req, res) => {
     return handleResearch(req, res);
   }
 
-  // ─── Stripe: checkout, verify, webhook ───────────────────────────────────
+  // ─── Stripe: checkout, verify, webhook, tip jar ───────────────────────────
   if (req.method === "POST" && pathname === "/api/checkout") {
     return createCheckout(res);
   }
@@ -310,6 +310,16 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && pathname === "/api/webhook") {
     return handleWebhook(req, res);
+  }
+  if (req.method === 'POST' && pathname === '/api/plate') {
+    let body = '';
+    req.on('data', c => (body += c));
+    req.on('end', () => {
+      const { amount } = JSON.parse(body || '{}');
+      const cents = [300, 500, 1000, 2500].includes(Number(amount)) ? Number(amount) : 500;
+      return createDonationCheckout(res, cents);
+    });
+    return;
   }
 
   // Research page API — used by research-ui.js
@@ -541,10 +551,9 @@ const server = http.createServer(async (req, res) => {
     return serveStatic(res, path.join(__dirname, "research.html"));
   }
 
-  // /upgrade → redirect to research page with upgrade flag
+  // /upgrade → pricing page
   if (pathname === "/upgrade") {
-    res.writeHead(302, { Location: "/research?upgrade=1" });
-    return res.end();
+    return serveStatic(res, path.join(__dirname, "upgrade.html"));
   }
 
   // Favicon and touch icons → logo SVGs

@@ -503,6 +503,7 @@ function showDeepNudges(topic) {
       border-radius: 20px;
       padding: 0.28rem 0.7rem;
       text-decoration: none;
+      cursor: pointer;
       transition: border-color 0.15s, background 0.15s, color 0.15s;
       white-space: nowrap;
     }
@@ -540,14 +541,29 @@ function showTipJar() {
     <button class="tip-dismiss" aria-label="Dismiss" onclick="this.closest('.tip-jar').remove();sessionStorage.setItem('mp_tip_shown','1')">×</button>
     <span class="tip-jar-msg">Compare is FREE — and always will be. If it helped today, pay what you can.</span>
     <div class="tip-amounts">
-      <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip $3">$3</a>
-      <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip $5">$5</a>
-      <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip $10">$10</a>
-      <a class="tip-btn" href="mailto:tip@manypaths.one?subject=Tip - other amount">Other</a>
+      <button class="tip-btn" onclick="passThePlate(300)">$3</button>
+      <button class="tip-btn" onclick="passThePlate(500)">$5</button>
+      <button class="tip-btn" onclick="passThePlate(1000)">$10</button>
+      <button class="tip-btn" onclick="passThePlate(2500)">$25</button>
     </div>`;
 
   document.getElementById('results').appendChild(jar);
   sessionStorage.setItem('mp_tip_shown', '1');
+}
+
+async function passThePlate(cents) {
+  try {
+    const res = await fetch('/api/plate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: cents }),
+    });
+    const { url, error } = await res.json();
+    if (error) { alert('Something went sideways — try again in a moment.'); return; }
+    window.location.href = url;
+  } catch {
+    alert('Something went sideways — try again in a moment.');
+  }
 }
 
 // ─── Surprise me ─────────────────────────────────────────────────────────────
