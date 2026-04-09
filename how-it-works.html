@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ManyPaths — How It Works</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0e0a06;
+      font-family: 'Josefin Sans', sans-serif;
+      color: #1a1a18;
+    }
+
+    .slides { width: 100%; }
+
+    .slide {
+      display: none;
+      width: 1366px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .slide.active { display: block; }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: #0e0a06;
+      border: 1px solid #c8900e;
+      color: #c8900e;
+      padding: 8px 22px;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-btn:hover { background: rgba(200,144,14,0.12); }
+    .nav-btn.active { background: #c8900e; color: #0e0a06; }
+
+    .ui-frame {
+      background: #f5f0e4;
+      min-height: 860px;
+      position: relative;
+    }
+
+    .ui-header {
+      background: #1a1a18;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+    }
+
+    .ui-logo {
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 13px;
+      letter-spacing: 4px;
+      color: #f5f0e4;
+      font-weight: 300;
+    }
+
+    .ui-nav { display: flex; gap: 28px; align-items: center; }
+
+    .ui-nav a {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .ui-nav .active-link { color: #f5f0e4; }
+    .ui-nav .inactive-link { color: #888; }
+
+    .new-badge {
+      display: inline-block;
+      border: 1px solid #1a9e6a;
+      color: #1a9e6a;
+      font-size: 8px;
+      padding: 1px 4px;
+      letter-spacing: 1px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .compare-hero { text-align: center; padding: 52px 0 36px; }
+    .compare-hero h1 { font-family: 'Josefin Sans', sans-serif; font-size: 52px; letter-spacing: 10px; font-weight: 300; color: #1a1a18; }
+    .compare-hero h1 span { color: #c8900e; font-weight: 600; }
+    .compare-hero .sub { font-family: 'EB Garamond', serif; font-style: italic; font-size: 18px; color: #888; margin-top: 8px; }
+
+    .sunday-banner { margin: 0 80px 32px; border: 1px solid #ddd; border-radius: 6px; background: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 16px; }
+    .sunday-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #c8900e; font-weight: 600; }
+    .sunday-title { font-family: 'EB Garamond', serif; font-size: 18px; color: #1a1a18; }
+    .sunday-scripture { font-size: 11px; color: #888; letter-spacing: 1px; flex: 1; text-align: center; }
+    .sunday-btns { display: flex; gap: 8px; }
+    .sunday-btn { border: 1px solid #c8900e; color: #c8900e; background: none; font-size: 10px; letter-spacing: 1px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+
+    .compare-card { margin: 0 80px; border: 1px solid #ddd; border-radius: 6px; background: #fff; padding: 32px 40px 36px; }
+    .compare-card label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #888; font-weight: 600; }
+    .topic-input { width: 100%; margin: 12px 0 8px; border: 1px solid #ddd; border-radius: 4px; padding: 14px 16px; font-family: 'EB Garamond', serif; font-size: 16px; color: #999; background: #faf8f3; }
+    .topic-pills { display: flex; gap: 8px; margin: 12px 0 24px; align-items: center; }
+    .try-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #888; }
+    .pill { border: 1px solid #ccc; border-radius: 20px; padding: 5px 14px; font-family: 'EB Garamond', serif; font-size: 14px; color: #1a1a18; cursor: pointer; }
+    .traditions-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #888; font-weight: 600; margin-bottom: 14px; }
+    .tradition-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+    .trad-pill { border: 1px solid #ccc; border-radius: 24px; padding: 8px 18px; font-family: 'Josefin Sans', sans-serif; font-size: 12px; letter-spacing: 1px; color: #1a1a18; display: flex; align-items: center; gap: 6px; }
+    .compare-btn { width: 100%; background: #c8900e; color: #fff; border: none; padding: 18px; font-family: 'Josefin Sans', sans-serif; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; border-radius: 4px; }
+
+    .research-hero { text-align: center; padding: 40px 0 28px; }
+    .research-hero h1 { font-family: 'Cinzel', serif; font-size: 48px; letter-spacing: 8px; font-weight: 400; color: #c8900e; }
+    .research-hero .sub { font-family: 'EB Garamond', serif; font-style: italic; font-size: 17px; color: #888; margin-top: 6px; }
+    .try-label-section { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #888; font-weight: 600; margin: 0 80px 16px; }
+    .sample-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0 80px 28px; }
+    .sample-card { border: 1px solid #ddd; border-radius: 6px; background: #fff; padding: 20px; }
+    .sample-card .format { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+    .sample-card .topic { font-family: 'EB Garamond', serif; font-size: 18px; color: #c8900e; margin-bottom: 8px; }
+    .sample-card .desc { font-family: 'EB Garamond', serif; font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 14px; }
+    .sample-card .load { font-size: 9px; letter-spacing: 2px; color: #c8900e; text-transform: uppercase; }
+
+    .research-form { margin: 0 80px; border: 1px solid #ddd; border-radius: 6px; background: #fff; padding: 28px 36px; }
+    .step-label { display: flex; align-items: center; gap: 10px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #888; font-weight: 600; margin-bottom: 14px; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #c8900e; color: #c8900e; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+    .format-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 24px; }
+    .format-card { border: 1px solid #ddd; border-radius: 6px; padding: 14px 12px; cursor: pointer; }
+    .format-card.selected { border-color: #c8900e; background: #fdf8ee; }
+    .format-card .icon { font-size: 20px; margin-bottom: 8px; }
+    .format-card .name { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+    .format-card .fdesc { font-family: 'EB Garamond', serif; font-size: 12px; color: #666; line-height: 1.3; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 8px 0 20px; }
+    .topic-field { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 14px 16px; font-family: 'EB Garamond', serif; font-size: 16px; color: #999; background: #faf8f3; margin: 12px 0 10px; }
+    .run-row { display: flex; gap: 12px; margin-top: 20px; align-items: center; }
+    .run-btn { flex: 1; background: #c8900e; color: #fff; border: none; padding: 16px; font-family: 'Josefin Sans', sans-serif; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; border-radius: 4px; }
+    .inspire-btn { border: 1px solid #ccc; background: none; padding: 16px 20px; font-family: 'Josefin Sans', sans-serif; font-size: 11px; letter-spacing: 2px; color: #888; cursor: pointer; border-radius: 4px; }
+    .sessions-note { font-size: 10px; color: #aaa; letter-spacing: 1px; margin-top: 8px; }
+
+    .annotation-layer { position: absolute; inset: 0; pointer-events: none; }
+
+    .callout {
+      position: absolute;
+      background: rgba(14, 10, 6, 0.95);
+      border: 1px solid #c8900e;
+      border-radius: 6px;
+      padding: 11px 15px;
+      max-width: 210px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .callout h3 { color: #c8900e; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 5px; font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+    .callout p { color: #f0ead8; font-size: 11.5px; line-height: 1.55; font-family: 'EB Garamond', serif; }
+    .callout p strong { color: #c8900e; font-style: normal; }
+
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    .dot {
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #c8900e;
+      border: 2px solid #fff;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      animation: popIn 0.3s ease forwards;
+    }
+    @keyframes popIn {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      60%  { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .title-overlay {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+      white-space: nowrap;
+    }
+    .title-overlay h2 { color: #f0ead8; font-size: 14px; letter-spacing: 5px; text-transform: uppercase; font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+    .title-overlay h2 span { color: #c8900e; font-weight: 600; }
+    .title-overlay p { color: #666; font-size: 10px; letter-spacing: 3px; margin-top: 5px; font-family: 'Josefin Sans', sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="showSlide(0)">Compare</button>
+  <button class="nav-btn" onclick="showSlide(1)">Research</button>
+</div>
+
+<div class="slide active" id="slide-0">
+  <div class="ui-frame">
+    <div class="ui-header">
+      <div class="ui-logo">MANY PATHS</div>
+      <div class="ui-nav">
+        <a href="#" class="active-link">COMPARE</a>
+        <a href="#" class="inactive-link">RESEARCH <span class="new-badge">NEW</span></a>
+      </div>
+    </div>
+    <div class="compare-hero">
+      <h1>MANY<span>PATHS</span></h1>
+      <div class="sub">one destination.</div>
+    </div>
+    <div class="sunday-banner">
+      <div class="sunday-label">This Sunday</div>
+      <div class="sunday-title">Easter Sunday</div>
+      <div class="sunday-scripture">Luke 24:1–12</div>
+      <div class="sunday-btns">
+        <button class="sunday-btn">Compare this theme →</button>
+        <button class="sunday-btn">Research this passage →</button>
+      </div>
+    </div>
+    <div class="compare-card">
+      <label>Choose a Topic</label>
+      <div class="topic-input">e.g. forgiveness, prayer, afterlife...</div>
+      <div class="topic-pills">
+        <span class="try-label">TRY:</span>
+        <span class="pill">Forgiveness</span>
+        <span class="pill">Prayer</span>
+        <span class="pill">Afterlife</span>
+        <span class="pill">Suffering</span>
+        <span class="pill">Love</span>
+        <span class="pill">Justice</span>
+      </div>
+      <div class="traditions-label">Select Religions to Compare (Pick 2 or more)</div>
+      <div class="tradition-pills">
+        <span class="trad-pill">✝ Christianity</span>
+        <span class="trad-pill">✡ Judaism</span>
+        <span class="trad-pill">☪ Islam</span>
+        <span class="trad-pill">☸ Buddhism</span>
+        <span class="trad-pill">ॐ Hinduism</span>
+        <span class="trad-pill">☯ Taoism</span>
+        <span class="trad-pill">✦ Sikhism</span>
+        <span class="trad-pill">✦ <span class="new-badge">NEW</span> Latter-day Saints</span>
+      </div>
+      <button class="compare-btn">Compare →</button>
+    </div>
+  </div>
+  <div class="annotation-layer">
+    <div class="dot" style="top:30px; left:1290px; animation-delay:0.2s"></div>
+    <div class="callout" style="top:44px; right:16px; animation-delay:0.3s">
+      <h3>Two modes</h3>
+      <p><strong>Compare</strong> — free, always. Pick any topic, pick 2–4 traditions, see them side by side.<br><br><strong>Research</strong> — deep study. Sermon tools, devotionals, guides in your tradition's own voice.</p>
+    </div>
+    <div class="dot" style="top:175px; left:683px; animation-delay:0.5s"></div>
+    <div class="callout" style="top:140px; left:16px; max-width:230px; animation-delay:0.6s">
+      <h3>Liturgical calendar</h3>
+      <p>ManyPaths knows what Sunday it is. One tap loads this week's theme and scripture — straight into Compare or Research.</p>
+    </div>
+    <div class="dot" style="top:340px; left:683px; animation-delay:0.8s"></div>
+    <div class="callout" style="top:310px; left:16px; animation-delay:0.9s">
+      <h3>Any topic</h3>
+      <p>Type anything. Or tap a suggestion to jump straight in.</p>
+    </div>
+    <div class="dot" style="top:550px; left:683px; animation-delay:1.1s"></div>
+    <div class="callout" style="top:510px; right:16px; animation-delay:1.2s">
+      <h3>8 traditions</h3>
+      <p>Pick 2 or more. Results show each tradition's teaching side by side — plus a <strong>Common Ground</strong> section where they agree.</p>
+    </div>
+    <div class="dot" style="top:660px; left:683px; animation-delay:1.4s"></div>
+    <div class="callout" style="top:630px; left:16px; animation-delay:1.5s">
+      <h3>Results in seconds</h3>
+      <p>Four tradition cards, one topic. Free. No account needed.</p>
+    </div>
+    <div class="title-overlay" style="animation-delay:1.9s">
+      <h2>MANY<span>PATHS</span> · Compare</h2>
+      <p>manypaths.one · always free</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-1">
+  <div class="ui-frame">
+    <div class="ui-header">
+      <div class="ui-logo">MANY PATHS</div>
+      <div class="ui-nav">
+        <a href="#" class="inactive-link">COMPARE</a>
+        <a href="#" class="active-link">RESEARCH <span class="new-badge">NEW</span></a>
+      </div>
+    </div>
+    <div class="research-hero">
+      <h1>RESEARCH</h1>
+      <div class="sub">one destination.</div>
+    </div>
+    <div class="try-label-section">Try These</div>
+    <div class="sample-cards">
+      <div class="sample-card">
+        <div class="format">Quick Answer</div>
+        <div class="topic">Grief</div>
+        <div class="desc">All 7 traditions treat grief as sacred — but they differ sharply on whether mourning should be public or private.</div>
+        <div class="load">Load this research →</div>
+      </div>
+      <div class="sample-card">
+        <div class="format">Scripture Study</div>
+        <div class="topic">John 3:16</div>
+        <div class="desc">The most quoted verse in Christianity carries echoes in Jewish, Islamic, and even Buddhist thought.</div>
+        <div class="load">Load this research →</div>
+      </div>
+      <div class="sample-card">
+        <div class="format">Preaching Outline</div>
+        <div class="topic">Redemption Through Suffering</div>
+        <div class="desc">Every major tradition has a theology of suffering — and they converge more than you'd expect.</div>
+        <div class="load">Load this research →</div>
+      </div>
+    </div>
+    <div class="research-form">
+      <div class="step-label"><span class="step-num">1</span> Your Tradition</div>
+      <div class="tradition-pills" style="margin-bottom:8px">
+        <span class="trad-pill" style="border-color:#c8900e; background:#fdf8ee">All traditions</span>
+        <span class="trad-pill">✝ Christianity</span>
+        <span class="trad-pill">✡ Judaism</span>
+        <span class="trad-pill">☪ Islam</span>
+        <span class="trad-pill">☸ Buddhism</span>
+        <span class="trad-pill">ॐ Hinduism</span>
+        <span class="trad-pill">☯ Taoism</span>
+        <span class="trad-pill">✦ Sikhism</span>
+        <span class="trad-pill">✦ Latter-day Saints</span>
+      </div>
+      <hr class="divider">
+      <div class="step-label"><span class="step-num">2</span> What Do You Need?</div>
+      <div class="format-grid">
+        <div class="format-card selected"><div class="icon">⚡</div><div class="name">Quick Answer</div><div class="fdesc">One-sentence answer per tradition</div></div>
+        <div class="format-card"><div class="icon">📖</div><div class="name">Scripture Study</div><div class="fdesc">Deep interpretation + historical context</div></div>
+        <div class="format-card"><div class="icon">🕯</div><div class="name">Devotional</div><div class="fdesc">Personal reflection for morning devotions</div></div>
+        <div class="format-card"><div class="icon">📋</div><div class="name">Preaching Outline</div><div class="fdesc">I / II / III structure with a unifying angle</div></div>
+        <div class="format-card"><div class="icon">✍</div><div class="name">Sermon Manuscript</div><div class="fdesc">Full sermon — intro, body, application, close</div></div>
+      </div>
+      <div class="format-grid">
+        <div class="format-card"><div class="icon">🌱</div><div class="name">Children's Lesson</div><div class="fdesc">Story-based lesson for ages 8–12</div></div>
+        <div class="format-card"><div class="icon">🕊</div><div class="name">Funeral Homily</div><div class="fdesc">Pastoral words for grief and loss</div></div>
+        <div class="format-card"><div class="icon">💛</div><div class="name">Wedding Homily</div><div class="fdesc">Words for covenant and celebration</div></div>
+        <div class="format-card"><div class="icon">👥</div><div class="name">Small Group Guide</div><div class="fdesc">Discussion questions for community study</div></div>
+        <div class="format-card"><div class="icon">✦</div><div class="name">Personal Reflection</div><div class="fdesc">Quiet prompts for prayer and contemplation</div></div>
+      </div>
+      <hr class="divider">
+      <div class="step-label"><span class="step-num">3</span> Your Topic or Text</div>
+      <div class="topic-field">Enter a topic, verse, or theme</div>
+      <div class="topic-pills">
+        <span class="pill">forgiveness</span><span class="pill">prayer</span><span class="pill">suffering</span><span class="pill">silence</span><span class="pill">justice</span><span class="pill">mercy</span><span class="pill">hope</span>
+      </div>
+      <div class="run-row">
+        <button class="run-btn">Run Research →</button>
+        <button class="inspire-btn">Inspire me →</button>
+      </div>
+      <div class="sessions-note">0 of 3 free Research sessions used this month</div>
+      <hr class="divider" style="margin-top:24px">
+      <div style="margin-top:4px">
+        <div class="step-label" style="margin-bottom:12px"><span style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#888;font-weight:600">Output — Listen Mode</span></div>
+        <div style="background:#faf8f3; border:1px solid #eee; border-radius:6px; padding:20px 24px;">
+          <div style="font-family:'EB Garamond',serif; font-size:15px; color:#444; line-height:1.7; margin-bottom:18px; font-style:italic;">“In the Baptist tradition, redemption through suffering is not passive endurance — it is the conviction that God meets us in our lowest place, and that the cross was not the end of the story...”</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;">Listen:</div>
+            <div style="display:flex; gap:8px;">
+              <button style="border:1px solid #c8900e; background:none; color:#c8900e; padding:6px 16px; font-family:'Josefin Sans',sans-serif; font-size:10px; letter-spacing:2px; cursor:pointer; border-radius:3px;">♀ Female</button>
+              <button style="border:1px solid #c8900e; background:#c8900e; color:#fff; padding:6px 16px; font-family:'Josefin Sans',sans-serif; font-size:10px; letter-spacing:2px; cursor:pointer; border-radius:3px;">♂ Male</button>
+            </div>
+            <button style="background:#1a1a18; border:none; color:#f5f0e4; width:36px; height:36px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;">▶</button>
+            <div style="font-family:'EB Garamond',serif; font-size:12px; color:#aaa; font-style:italic;">Baptist · Sermon Manuscript</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation-layer">
+    <div class="dot" style="top:330px; left:683px; animation-delay:0.2s"></div>
+    <div class="callout" style="top:280px; right:16px; animation-delay:0.3s"><h3>Start here</h3><p>Pre-loaded prompts across formats and traditions. One tap loads a full research session.</p></div>
+    <div class="dot" style="top:490px; left:440px; animation-delay:0.5s"></div>
+    <div class="callout" style="top:455px; left:16px; animation-delay:0.6s"><h3>① Your tradition</h3><p>Pick yours and the output speaks in your voice — Baptist, Orthodox, Reform, Sufi. Or leave on <strong>All traditions</strong> for a comparative result.</p></div>
+    <div class="dot" style="top:590px; left:683px; animation-delay:0.8s"></div>
+    <div class="callout" style="top:555px; right:16px; animation-delay:0.9s"><h3>② 10 formats</h3><p>Quick Answer to full Sermon Manuscript. Children's Lesson to Funeral Homily. Pick the output you actually need.</p></div>
+    <div class="dot" style="top:770px; left:683px; animation-delay:1.1s"></div>
+    <div class="callout" style="top:735px; left:16px; animation-delay:1.2s"><h3>③ Topic or scripture</h3><p>Type anything — a theme, a verse, a question. Or hit <strong>Inspire me</strong> for a prompt.</p></div>
+    <div class="dot" style="top:840px; left:660px; animation-delay:1.4s"></div>
+    <div class="callout" style="top:800px; right:16px; animation-delay:1.5s"><h3>3 free sessions</h3><p>Research is free to try. No account needed to start.</p></div>
+    <div class="dot" style="top:980px; left:390px; animation-delay:1.6s"></div>
+    <div class="callout" style="top:940px; right:16px; animation-delay:1.7s"><h3>Listen to your output</h3><p>Every result can be read aloud. Pick male or female voice, hit play. Built for clergy on a commute — sermon prep without looking at a screen.</p></div>
+    <div class="title-overlay" style="animation-delay:2.1s">
+      <h2>MANY<span>PATHS</span> · Research</h2>
+      <p>manypaths.one · free to try</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach((s,i) => s.classList.toggle('active', i === n));
+    document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i === n));
+  }
+</script>
+
+</body>
+</html>
