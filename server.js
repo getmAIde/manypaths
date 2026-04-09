@@ -18,17 +18,14 @@ const client = new Anthropic({ apiKey: (process.env.ANTHROPIC_API_KEY || '').tri
 const PORT = process.env.PORT || 3100;
 
 // ─── Per-fingerprint rate limiter ─────────────────────────────────────────────
-// Prevents machine-gun requests from bypassing the monthly gate.
-// In-memory: per-process, resets on cold start — intentional (defense in depth only).
-const RATE_LIMIT_MS = 30_000; // 30 seconds between requests per device
-const _lastRequest  = new Map(); // fingerprint → timestamp
+const RATE_LIMIT_MS = 30_000;
+const _lastRequest  = new Map();
 
 function isRateLimited(fingerprint) {
   const now = Date.now();
   const last = _lastRequest.get(fingerprint);
   if (last && now - last < RATE_LIMIT_MS) return true;
   _lastRequest.set(fingerprint, now);
-  // Prune map to prevent unbounded growth (keep last 5000 entries)
   if (_lastRequest.size > 5000) {
     const oldest = [..._lastRequest.entries()]
       .sort((a, b) => a[1] - b[1])
@@ -39,15 +36,12 @@ function isRateLimited(fingerprint) {
   return false;
 }
 
-// Known abusive device fingerprints — blocked permanently
 const BLOCKED_FINGERPRINTS = new Set([
   '4d98f02fb217a76d7266805a9b42b366276fba8222236109caff9893839cffa6',
 ]);
 
-// ─── Rate limit alert (Resend) ────────────────────────────────────────────────
-// Fires at most once per hour to avoid spam. In-memory cooldown.
-const _alertCooldown = new Map(); // fingerprint → last alert timestamp
-const ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+const _alertCooldown = new Map();
+const ALERT_COOLDOWN_MS = 60 * 60 * 1000;
 
 async function sendRateLimitAlert(fingerprint, endpoint, reason) {
   const resendKey = process.env.RESEND_API_KEY;
@@ -55,7 +49,7 @@ async function sendRateLimitAlert(fingerprint, endpoint, reason) {
 
   const now = Date.now();
   const last = _alertCooldown.get(fingerprint);
-  if (last && now - last < ALERT_COOLDOWN_MS) return; // already alerted recently
+  if (last && now - last < ALERT_COOLDOWN_MS) return;
   _alertCooldown.set(fingerprint, now);
 
   const to = process.env.ADMIN_ALERT_EMAIL || 'hello@legisplain.org';
@@ -162,12 +156,9 @@ async function handleResearch(req, res) {
 
       stream.on("error", (err) => console.error("[stream error]", err));
 
-      // Parse streaming text into sections and forward as SSE
-      // Keep a persistent buffer across chunks so markers split across
-      // chunk boundaries are still detected correctly.
       let buffer = "";
       let currentSection = null;
-      let fullText = "";   // accumulate everything Claude says for debug logging
+      let fullText = "";
 
       for await (const event of stream) {
         console.log("[event]", event.type, event.delta?.type ?? "");
@@ -180,9 +171,6 @@ async function handleResearch(req, res) {
         buffer += event.delta.text;
         fullText += event.delta.text;
 
-        // Scan for complete ##SECTION:Name## markers and route content between them.
-        // Only hold back a trailing partial marker prefix (not the closing ## of a
-        // complete marker — that was the original bug).
         const markerRe = /##SECTION:([^#]+)##/g;
         let lastEnd = 0;
         let m;
@@ -197,7 +185,6 @@ async function handleResearch(req, res) {
           lastEnd = m.index + m[0].length;
         }
 
-        // Hold back only a genuine partial marker at the end of the buffer.
         const tail = buffer.slice(lastEnd);
         const partial = tail.match(/#+$|##SECTION:[^#]*$/);
         if (partial) {
@@ -213,7 +200,6 @@ async function handleResearch(req, res) {
         }
       }
 
-      // Flush anything left in the buffer
       if (buffer && currentSection) {
         send(res, currentSection, buffer);
       }
@@ -240,7 +226,6 @@ async function handleResearch(req, res) {
 function send(res, section, text) {
   res.write(`data: ${JSON.stringify({ section, text })}\n\n`);
 }
-
 
 function buildPrompt(topic, religions) {
   const sections = religions
@@ -285,14 +270,11 @@ Rules:
 
 // ─── Notes ────────────────────────────────────────────────────────────────────
 // SSL/HTTPS: Handled by Vercel's edge — this server speaks plain HTTP internally.
-// Markdown export: Client-side only (research-ui.js Blob download) — no server involvement.
 // Stripe: Wired. Activation: set RESEARCH_PAYWALL_ENABLED=true in Vercel env vars.
-//         Required env vars: STRIPE_SECRET_KEY, STRIPE_PRICE_ID,
-//                            STRIPE_WEBHOOK_SECRET, STRIPE_JWT_SECRET
+//         Coupon SEMINARY44 (44% off forever) created in Stripe Dashboard 2026-04-09.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const server = http.createServer(async (req, res) => {
-  // Strip query string from URL before routing
   const pathname = new URL(req.url, "http://localhost").pathname;
 
   console.log(`[${req.method}] ${pathname}`);
@@ -303,7 +285,13 @@ const server = http.createServer(async (req, res) => {
 
   // ─── Stripe: checkout, verify, webhook, tip jar ───────────────────────────
   if (req.method === "POST" && pathname === "/api/checkout") {
-    return createCheckout(res);
+    let body = '';
+    req.on('data', c => (body += c));
+    req.on('end', () => {
+      const { seminary = false } = JSON.parse(body || '{}');
+      return createCheckout(res, { seminary });
+    });
+    return;
   }
   if (req.method === "POST" && pathname === "/api/checkout/verify") {
     return verifyCheckout(req, res);
@@ -324,9 +312,6 @@ const server = http.createServer(async (req, res) => {
 
   // Research page API — used by research-ui.js
   if (req.method === "POST" && pathname === "/api/run-research") {
-    // ─── Auth + Usage gate ───────────────────────────────────────────────────
-    // Paid users: valid JWT → unlimited access, no usage tracking
-    // Free users: 3 runs/month tracked by fingerprint or userId
     const authHeader = req.headers['authorization'] || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
     const jwtSecret = process.env.STRIPE_JWT_SECRET || '';
@@ -346,22 +331,18 @@ const server = http.createServer(async (req, res) => {
     if (!isPaid) {
       const fingerprint = req.headers['x-fingerprint'] || req.headers['x-forwarded-for'] || 'unknown';
 
-      // Hard block known abusive devices
       if (BLOCKED_FINGERPRINTS.has(fingerprint)) {
         sendRateLimitAlert(fingerprint, '/api/run-research', 'hard-blocked device').catch(() => {});
         res.writeHead(403, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'access_denied' }));
       }
 
-      // Per-device rate limit (30s cooldown) — stops machine-gun bypass attempts
       if (isRateLimited(fingerprint)) {
         sendRateLimitAlert(fingerprint, '/api/run-research', 'rate limited (30s cooldown)').catch(() => {});
         res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '30' });
         return res.end(JSON.stringify({ error: 'rate_limited', retryAfter: 30 }));
       }
 
-      // Atomic increment-then-check — eliminates the race condition.
-      // We increment BEFORE running; if over limit, we reject (count stays bumped, correct behavior).
       const { newCount, allowed } = await atomicIncrementUsage(tokenUserId, fingerprint);
       if (!allowed) {
         sendRateLimitAlert(fingerprint, '/api/run-research', `monthly limit exceeded (count=${newCount})`).catch(() => {});
@@ -369,7 +350,6 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: 'free_limit_reached', remaining: 0 }));
       }
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     let body = "";
     req.on("data", c => (body += c));
@@ -471,14 +451,13 @@ const server = http.createServer(async (req, res) => {
     return serveIndex(res, topic, traditions);
   }
 
-  // Dynamic OG image endpoint — GET /og?topic=...&traditions=...
+  // Dynamic OG image endpoint
   if (req.method === "GET" && pathname === "/og") {
     const url        = new URL(req.url, "http://localhost");
     const topic      = (url.searchParams.get("topic") || "").trim();
     const tradParam  = url.searchParams.get("traditions") || "";
     const traditions = tradParam ? tradParam.split(",").map(s => s.trim()).filter(Boolean) : [];
     if (!topic) {
-      // Fall back to default OG image
       return serveStatic(res, path.join(__dirname, "og-default.png"));
     }
     try {
@@ -510,8 +489,8 @@ const server = http.createServer(async (req, res) => {
           res.writeHead(503); return res.end('TTS not configured');
         }
         const VOICES = {
-          male:   'onwK4e9ZLuTAKqWW03F9',  // Daniel — steady broadcaster, British
-          female: 'EXAVITQu4vr4xnSDxMaL',  // Sarah — mature, reassuring, confident
+          male:   'onwK4e9ZLuTAKqWW03F9',
+          female: 'EXAVITQu4vr4xnSDxMaL',
         };
         const voiceId = VOICES[voice] || VOICES.female;
         const elRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
@@ -546,17 +525,14 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Research page
   if (pathname === "/research") {
     return serveStatic(res, path.join(__dirname, "research.html"));
   }
 
-  // /upgrade → pricing page
   if (pathname === "/upgrade") {
     return serveStatic(res, path.join(__dirname, "upgrade.html"));
   }
 
-  // Favicon and touch icons → logo SVGs
   if (pathname === "/favicon.ico") {
     return serveStatic(res, path.join(__dirname, "logo/icon-32.svg"));
   }
@@ -564,10 +540,8 @@ const server = http.createServer(async (req, res) => {
     return serveStatic(res, path.join(__dirname, "logo/icon-180.svg"));
   }
 
-  // Everything else serves directly
   const filePath = path.join(__dirname, pathname.slice(1));
 
-  // Prevent path traversal
   if (!filePath.startsWith(__dirname + path.sep) && filePath !== __dirname) {
     res.writeHead(403);
     return res.end("Forbidden");
