@@ -533,6 +533,18 @@ const server = http.createServer(async (req, res) => {
     return serveStatic(res, path.join(__dirname, "upgrade.html"));
   }
 
+  if (pathname === "/how-it-works") {
+    return serveStatic(res, path.join(__dirname, "how-it-works.html"));
+  }
+
+  if (pathname === "/onboarding.js") {
+    return serveStatic(res, path.join(__dirname, "onboarding.js"));
+  }
+
+  if (pathname === "/onboarding.html") {
+    return serveStatic(res, path.join(__dirname, "onboarding.html"));
+  }
+
   if (pathname === "/favicon.ico") {
     return serveStatic(res, path.join(__dirname, "logo/icon-32.svg"));
   }

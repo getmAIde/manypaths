@@ -33,6 +33,9 @@
           "robots.txt",
           "sitemap.xml",
           "how-it-works.html",
+          "onboarding.html",
+          "onboarding.js",
+          "upgrade.html",
           "logo/**",
           "node_modules/**"
         ]
