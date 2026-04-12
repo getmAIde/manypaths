@@ -350,6 +350,10 @@ const server = http.createServer(async (req, res) => {
     req.on("end", async () => {
       try {
         const { mode, depth, input, traditions } = JSON.parse(body);
+
+        // Log input for debugging
+        console.log("[/api/run-research] mode:", mode, "depth:", depth, "traditions:", traditions);
+
         const result = await runResearch(mode, depth, input, traditions);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(result));
@@ -357,8 +361,32 @@ const server = http.createServer(async (req, res) => {
         console.error("[/api/run-research] ERROR:", err.message);
         console.error("[/api/run-research] STACK:", err.stack);
         console.error("[/api/run-research] TYPE:", err.constructor?.name);
-        res.writeHead(err.message.startsWith("invalid") ? 400 : 500);
-        res.end(JSON.stringify({ error: err.message.startsWith("invalid") ? err.message : "Something went wrong. Please try again." }));
+
+        // Log full error details to help debug Vercel function issues
+        console.error("[/api/run-research] FULL_ERROR:", JSON.stringify({
+          message: err.message,
+          name: err.constructor?.name,
+          stack: err.stack,
+          timestamp: new Date().toISOString(),
+        }));
+
+        // Return more specific error messages based on error type
+        let statusCode = 500;
+        let errorMsg = "Research unavailable, try again later.";
+
+        if (err.message.includes("Claude API")) {
+          errorMsg = "AI service error. Check API key and quota.";
+          statusCode = 503;
+        } else if (err.message.includes("timeout")) {
+          errorMsg = "Request timeout. Try with fewer traditions or shorter input.";
+          statusCode = 504;
+        } else if (err.message.includes("invalid")) {
+          errorMsg = err.message;
+          statusCode = 400;
+        }
+
+        res.writeHead(statusCode, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: errorMsg, type: err.constructor?.name }));
       }
     });
     return;

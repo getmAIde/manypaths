@@ -136,21 +136,76 @@ export async function verifyCheckout(req, res) {
 
 /**
  * POST /api/webhook
- * Stripe webhook handler (basic — no signature verification yet)
+ * Stripe webhook handler with signature verification
+ *
+ * Required env vars:
+ *   STRIPE_WEBHOOK_SECRET — from Stripe Dashboard → Webhooks → Signing secret
+ *   STRIPE_SECRET_KEY — for signature verification
  */
 export async function handleWebhook(req, res) {
-  let body = '';
-  req.on('data', chunk => body += chunk);
+  const sig = req.headers['stripe-signature'];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secret || !secretKey) {
+    console.error('[webhook] STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY not configured');
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Webhook not configured' }));
+  }
+
+  if (!sig) {
+    console.error('[webhook] missing stripe-signature header');
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Missing signature' }));
+  }
+
+  let rawBody = '';
+  req.on('data', chunk => (rawBody += chunk));
   req.on('end', async () => {
     try {
-      const event = JSON.parse(body);
-      console.log(`[webhook] ${event.type}: ${event.data?.object?.id}`);
-      res.writeHead(200);
-      res.end('ok');
+      // Import Stripe dynamically
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(secretKey);
+
+      let event;
+      try {
+        // Verify signature using raw body (not parsed JSON)
+        event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+      } catch (err) {
+        console.error('[webhook] signature verification failed:', err.message);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: `Webhook Error: ${err.message}` }));
+      }
+
+      console.log(`[webhook] ✓ verified event ${event.type}: ${event.data?.object?.id}`);
+
+      // Handle specific event types
+      switch (event.type) {
+        case 'customer.subscription.created':
+          console.log(`[webhook] new subscription:`, event.data.object.id);
+          break;
+        case 'customer.subscription.updated':
+          console.log(`[webhook] subscription updated:`, event.data.object.id);
+          break;
+        case 'customer.subscription.deleted':
+          console.log(`[webhook] subscription cancelled:`, event.data.object.id);
+          break;
+        case 'invoice.payment_succeeded':
+          console.log(`[webhook] payment succeeded for invoice:`, event.data.object.id);
+          break;
+        case 'invoice.payment_failed':
+          console.log(`[webhook] payment failed for invoice:`, event.data.object.id);
+          break;
+        default:
+          console.log(`[webhook] handled event type: ${event.type}`);
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ received: true }));
     } catch (err) {
       console.error('[webhook] error:', err.message);
-      res.writeHead(500);
-      res.end('error');
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
     }
   });
 }

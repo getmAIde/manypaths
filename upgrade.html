@@ -288,15 +288,16 @@
         <!-- Seminary -->
         <div class="tier-card">
           <p class="tier-name">Seminary</p>
-          <div class="tier-price" id="semPrice">$5<span>/mo</span></div>
-          <p class="tier-alt-price" id="semAltPrice">44% off for .edu — billed monthly</p>
+          <div class="tier-price" id="semPrice">$19<span>/mo</span></div>
+          <p class="tier-alt-price" id="semAltPrice">for clergy &amp; faculty — billed monthly</p>
           <ul class="tier-features">
             <li>Everything in Pro</li>
-            <li>For students &amp; faculty</li>
-            <li>with a .edu email</li>
+            <li>50 Research sessions/month</li>
+            <li>Priority support</li>
+            <li>For ordained clergy &amp; faculty</li>
           </ul>
-          <button class="tier-cta" id="semBtn">Subscribe with .edu →</button>
-          <p class="seminary-note">Enter your .edu email at checkout.</p>
+          <button class="tier-cta" id="semBtn">Subscribe →</button>
+          <p class="seminary-note">Verify ministry affiliation at checkout.</p>
         </div>
       </div>
     </div>
@@ -322,14 +323,14 @@
         billingSwitch.classList.add('annual');
         proPrice.innerHTML = '$79<span>/yr</span>';
         proAltPrice.textContent = 'billed annually · cancel anytime';
-        semPrice.innerHTML = '$44<span>/yr</span>';
-        semAltPrice.textContent = '44% off for .edu — billed annually';
+        semPrice.innerHTML = '$149<span>/yr</span>';
+        semAltPrice.textContent = 'for clergy &amp; faculty — billed annually';
       } else {
         billingSwitch.classList.remove('annual');
         proPrice.innerHTML = '$9<span>/mo</span>';
         proAltPrice.textContent = 'billed monthly · cancel anytime';
-        semPrice.innerHTML = '$5<span>/mo</span>';
-        semAltPrice.textContent = '44% off for .edu — billed monthly';
+        semPrice.innerHTML = '$19<span>/mo</span>';
+        semAltPrice.textContent = 'for clergy &amp; faculty — billed monthly';
       }
     }
 
