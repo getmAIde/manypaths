@@ -482,6 +482,16 @@ PORT=3100
 - **No Graceful Shutdown:** Server doesn't handle SIGTERM for cleanup (e.g., finish pending Stripe calls).
 - **Rate Limiting:** Per-fingerprint cooldown (30s) may block legitimate users behind shared IP; no user notification.
 
+### Seminary .edu Gate (2026-04-12)
+- **Email Validation:** Seminary plan requires .edu email at checkout (validation in stripe-handlers.js line 37-44)
+- **Automatic Discount:** SEMINARY coupon (44% off) applied automatically after .edu validation
+- **Pricing:** $5/mo (44% off $9 Pro rate), $44/yr (44% off $79 annual)
+- **Stripe Setup Required:** Manual coupon creation in Stripe Dashboard:
+  - Code: `SEMINARY`
+  - Discount: `44%` off
+  - Duration: `Forever`
+  - Unlimited redemptions
+
 ### User Experience
 - **No Auth on Compare:** Free tier is fingerprint-only; no persistent user saves on Compare tab.
 - **Paywall Timing Verified** ✅ **CORRECT (not an issue):**

@@ -29,8 +29,19 @@ export async function createCheckout(req, res) {
   req.on('data', chunk => body += chunk);
   req.on('end', async () => {
     try {
-      const { annual, seminary } = JSON.parse(body || '{}');
+      const { annual, seminary, email } = JSON.parse(body || '{}');
       const secretKey = (process.env.STRIPE_SECRET_KEY || '').trim();
+
+      // Seminary requires .edu email validation
+      if (seminary) {
+        if (!email || !email.toLowerCase().endsWith('.edu')) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({
+            error: 'Seminary plan requires a valid .edu email address (academic/institution email).'
+          }));
+        }
+      }
+
       let priceId;
       if (seminary) {
         priceId = (annual
@@ -52,6 +63,11 @@ export async function createCheckout(req, res) {
       params.append('success_url', SUCCESS_URL);
       params.append('cancel_url', CANCEL_URL);
       params.append('subscription_data[trial_period_days]', '7');
+
+      // Apply SEMINARY coupon automatically to Seminary plans (after .edu validation)
+      if (seminary) {
+        params.append('discounts[0][coupon]', 'SEMINARY');
+      }
 
       const response = await fetch(`${STRIPE_API}/checkout/sessions`, {
         method: 'POST',
