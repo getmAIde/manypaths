@@ -52,13 +52,11 @@
     ['2026-12-25', 'Christmas Day',          'Luke 2:1–20',        'the birth of Christ',                'Luke 2:1-20'],
   ];
 
-  function getThisSunday() {
+  function getMostRecentSunday() {
     const today = new Date();
     const day = today.getDay(); // 0 = Sunday
-    if (day === 0) return today;
-    const next = new Date(today);
-    next.setDate(today.getDate() + (7 - day));
-    return next;
+    const diff = today.getDate() - day;
+    return new Date(today.setDate(diff));
   }
 
   function toYMD(d) {
@@ -69,7 +67,7 @@
     const widget = document.getElementById('lectWidget');
     if (!widget) return;
 
-    const thisSunday = toYMD(getThisSunday());
+    const thisSunday = toYMD(getMostRecentSunday());
     const entry = RCL.find(([date]) => date === thisSunday)
       || RCL.find(([date]) => date >= thisSunday); // nearest future if no exact match
     if (!entry) return;
